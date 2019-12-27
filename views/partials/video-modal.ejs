@@ -1,0 +1,79 @@
+<div class="modal fade" id="video-modal" data-backdrop="static" tabindex="-1" role="dialog"
+	aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+	<form action="/api/publish-file" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="type" value="video">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-video fa-lg mr-2"></i>Post a
+						video</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<span class="font-weight-bolder">Select a video:</span> <br>
+					<input type="file" id="video-file-input" name="file" accept=".mov,.mp4,.ogg"> <br>
+					<video width="300" height="200" controls>
+						<source id="preview-video" src="#">
+						video unavailable
+					</video>
+					<br>
+					<span class="font-weight-bolder">Add a blurb:</span> <br>
+					<textarea id="video-texta" style="outline:none; width: 100%;" name="blurb"></textarea>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<button id="video-submit-button" type="submit" class="btn btn-primary">Publish</button>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+
+<script>
+	$(document).ready(function () {
+		$('#video-submit-button').attr('disabled', true);
+
+		$('textarea').on('keyup', function () {
+			var textarea_value = $("#video-texta").val();
+			if (textarea_value != '') {
+				$('#video-submit-button').attr('disabled', false);
+			} else {
+				$('#video-submit-button').attr('disabled', true);
+			}
+		});
+
+
+		$('textarea').on('keyup', function () {
+			var textarea_value = $("#video-texta").val();
+			var file_value = $("#video-file-input").val();
+			console.log(file_value);
+			console.log(typeof file_value);
+			if (textarea_value != '' && file_value != '') {
+				$('#video-submit-button').attr('disabled', false);
+			} else {
+				$('#video-submit-button').attr('disabled', true);
+			}
+		});
+
+		$('#video-file-input').on('change', function (event) {
+			var textarea_value = $("#video-texta").val();
+			var file_value = $("#video-file-input").val();
+			if (textarea_value != '' && file_value != '') {
+				$('#video-submit-button').attr('disabled', false);
+			} else {
+				$('#video-submit-button').attr('disabled', true);
+			}
+			if (file_value == '') {
+				$('#preview-video').attr('src', "#");
+			}
+			else {
+				let file = event.target.files[0];
+				let blobURL = URL.createObjectURL(file);
+				document.querySelector("video").src = blobURL;
+			}
+		});
+
+	});
+</script>

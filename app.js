@@ -15,6 +15,9 @@ const passport = require('passport');
 const passportSetup = require('./services/passport-setup');
 const mongoose = require('mongoose');
 const { authCheck, antiAuthCheck } = require('./services/utilities');
+const path = require('path');
+//const multer = require('multer');
+//const multerSetup = require('./services/multer-setup');
 
 // connect to mongodb
 mongoose.connect(

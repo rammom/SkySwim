@@ -1,6 +1,7 @@
 <div class="modal fade" id="image-modal" data-backdrop="static" tabindex="-1" role="dialog"
 	aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-	<form action="/api/publish-image" method="post">
+	<form action="/api/publish-file" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="type" value="image">
 		<div class="modal-dialog modal-dialog-centered" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -11,8 +12,8 @@
 				</div>
 				<div class="modal-body">
 					<span class="font-weight-bolder">Select an image:</span> <br>
-					<input type="file" name="image" accept=".png,.jpg,.jpeg" onchange="readURL(this);"> <br>
-					<img id="preview-image" src="#" alt="your image" /> <br>
+					<input type="file" name="file" id="image-file-input" accept=".png,.jpg,.jpeg" onchange="readURL(this);"> <br>
+					<img id="preview-image" src="#" alt="no preview available" /> <br>
 					<span class="font-weight-bolder">Add a blurb:</span> <br>
 					<textarea id="image-texta" style="outline:none; width: 100%;" name="blurb"></textarea>
 				</div>
@@ -27,7 +28,6 @@
 
 <script>
 	function readURL(input) {
-		console.log(input);
 		if (input.files && input.files[0]) {
 			var reader = new FileReader();
 
@@ -46,10 +46,27 @@
 
 		$('textarea').on('keyup', function () {
 			var textarea_value = $("#image-texta").val();
-			if (textarea_value != '') {
+			var file_value = $("#image-file-input").val();
+			if (textarea_value != '' && file_value != '') {
 				$('#image-submit-button').attr('disabled', false);
 			} else {
 				$('#image-submit-button').attr('disabled', true);
+			}
+		});
+
+		$('#image-file-input').on('change', function () {
+			var textarea_value = $("#image-texta").val();
+			var file_value = $("#image-file-input").val();
+			if (textarea_value != '' && file_value != '') {
+				$('#image-submit-button').attr('disabled', false);
+			} else {
+				$('#image-submit-button').attr('disabled', true);
+			}
+			if (file_value == '') {
+				$('#preview-image')
+					.attr('src', "#")
+					.width(150)
+					.height(200);
 			}
 		});
 

@@ -1,5 +1,6 @@
 <div>
 	<%- include('partials/nav') %>
+	<%- include('partials/video-modal')%>
 	<%- include('partials/image-modal')%>
 	<%- include('partials/blurb-modal')%>
 	<div class="row mt-5 md-5">
@@ -11,7 +12,7 @@
 				<div class="post-options row text-center">
 					<div class="col post-option" data-toggle="modal" data-target="#blurb-modal"><i class="fas fa-comment-dots fa-2x"></i><br><small>blurb</small></div>
 					<div class="col post-option" data-toggle="modal" data-target="#image-modal"><i class="fas fa-image fa-2x"></i><br><small>image</small></div>
-					<div class="col post-option"><i class="fas fa-video fa-2x"></i><br><small>video</small></div>
+					<div class="col post-option" data-toggle="modal" data-target="#video-modal"><i class="fas fa-video fa-2x"></i><br><small>video</small></div>
 				</div>
 			</div>
 			<hr>
@@ -19,8 +20,14 @@
 				<!-- feed goes here, figure this out -->
 				<% user.posts.forEach(function(post) { %>
 					<div class="card mb-3">
-						<% if (post.image) { %>
+						<% if (post.type == 'image') { %>
 							<img src="<%= post.image %>" class="card-img-top" alt="img">
+						<% } %>
+						<% if (post.type == 'video') { %>
+							<video controls>
+								<source src="<%= post.video %>">
+								Your browser does not support the video tag.
+							</video>
 						<% } %>
 						<div class="card-body row">
 							<div class="col">
@@ -48,6 +55,11 @@
 </div>
 
 <style>
+	video {
+ 		width: 100%    !important;
+  		height: auto   !important;
+		max-height: 50vh !important;
+	}
 	.avatar {
 		vertical-align: middle;
 		width: 50px;
