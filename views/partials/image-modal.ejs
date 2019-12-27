@@ -1,0 +1,58 @@
+<div class="modal fade" id="image-modal" data-backdrop="static" tabindex="-1" role="dialog"
+	aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+	<form action="/api/publish-image" method="post">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-image fa-lg mr-2"></i>Post an image</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<span class="font-weight-bolder">Select an image:</span> <br>
+					<input type="file" name="image" accept=".png,.jpg,.jpeg" onchange="readURL(this);"> <br>
+					<img id="preview-image" src="#" alt="your image" /> <br>
+					<span class="font-weight-bolder">Add a blurb:</span> <br>
+					<textarea id="image-texta" style="outline:none; width: 100%;" name="blurb"></textarea>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<button id="image-submit-button" type="submit" class="btn btn-primary">Publish</button>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+
+<script>
+	function readURL(input) {
+		console.log(input);
+		if (input.files && input.files[0]) {
+			var reader = new FileReader();
+
+			reader.onload = function (e) {
+				$('#preview-image')
+					.attr('src', e.target.result)
+					.width(150)
+					.height(200);
+			};
+
+			reader.readAsDataURL(input.files[0]);
+		}
+	}
+	$(document).ready(function () {
+		$('#image-submit-button').attr('disabled', true);
+
+		$('textarea').on('keyup', function () {
+			var textarea_value = $("#image-texta").val();
+			if (textarea_value != '') {
+				$('#image-submit-button').attr('disabled', false);
+			} else {
+				$('#image-submit-button').attr('disabled', true);
+			}
+		});
+
+		
+	});
+</script>

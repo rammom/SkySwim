@@ -1,0 +1,35 @@
+<div class="modal fade" id="blurb-modal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+	aria-hidden="true">
+	<form action="/api/publish-blurb" method="post">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-comment-dots fa-lg mr-2"></i>Post a blurb</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<textarea id="blurb-texta" class="modal-body" style="border: none; outline:none" name="blurb" ></textarea>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<button id="blurb-submit-button" type="submit" class="btn btn-primary" >Publish</button>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+
+<script>
+	$(document).ready(function () {
+		$('#blurb-submit-button').attr('disabled', true);
+		
+		$('textarea').on('keyup', function () {
+			var textarea_value = $("#blurb-texta").val();
+			if (textarea_value != '') {
+				$('#blurb-submit-button').attr('disabled', false);
+			} else {
+				$('#blurb-submit-button').attr('disabled', true);
+			}
+		});
+	});
+</script>
