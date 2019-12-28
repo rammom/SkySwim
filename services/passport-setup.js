@@ -10,9 +10,7 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((id, done) => {
 	User.findById(id)
 		.then(user => {
-			if (!user) {
-				done();
-			}
+			if (!user) done('user not found');
 			done(null, user);
 		})
 })
@@ -32,9 +30,14 @@ passport.use(
 						googleId: profile.id,
 						username: profile.displayName,
 						picture: profile._json.picture
-					}).save().then(newUser => {
+					})
+					.save()
+					.then(newUser => {
 						console.log("new user created: " + newUser);
 						done(null, newUser);
+					})
+					.catch(err => {
+						throw err;
 					});
 				}
 				else {
@@ -70,5 +73,8 @@ passport.use(
 					done(null, currentUser);
 				}
 			})
+			.catch(err => {
+				throw err;
+			});
 	})
 )
