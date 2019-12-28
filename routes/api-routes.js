@@ -8,7 +8,6 @@ const AWS = require('aws-sdk');
 const s3 = require('../services/aws-setup');
 const fs = require('fs');
 
-
 // publish a new blurb
 router.post('/publish-blurb', (req, res) => {
 	if (!req.body.blurb) {
