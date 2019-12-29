@@ -64,12 +64,9 @@ router.get('/s3-signed-url', (req, res, next) => {
 	};
 	console.log(contentType.split('/').pop());
 	const options = {
-		accessKeyId: 'AKIAQDDQDDHK663FWWTS',//process.env.SS_AWS_ID,
-		secretAccessKey: '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',//process.env.SS_AWS_SECRET,
-		region: 'us-east-2',
-		signatureVersion: 'v4',
-		// endpoint: new AWS.Endpoint('skyswim.s3-accelerate.amazonaws.com'), 
-		// useAccelerateEndpoint: true,
+		accessKeyId: process.env.SS_AWS_ID,
+		secretAccessKey: process.env.SS_AWS_SECRET,
+		signatureVersion: 'v4'
 	}
 	const s3 = new AWS.S3(options);
 	s3.getSignedUrl('putObject', params, (err, data) => {
