@@ -15,7 +15,6 @@ const passport = require('passport');
 const passportSetup = require('./services/passport-setup');
 const mongoose = require('mongoose');
 const { authCheck, antiAuthCheck } = require('./services/utilities');
-const path = require('path');
 const Errors = require('./services/Errors');
 
 
@@ -41,6 +40,7 @@ mongoose.connect(
 
 // other middleware
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(express.static('./public'));
 
 

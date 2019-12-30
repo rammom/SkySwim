@@ -20,10 +20,5 @@ module.exports = {
 			// if not logged in
 			next();
 		}
-	},
-	wrapAsync: (fn) => {
-		return function (req, res, next) {
-			fn(req, res, next).catch(next);
-		};
 	}
 }

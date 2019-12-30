@@ -1,34 +1,33 @@
 <div class="modal fade" id="video-modal" data-backdrop="static" tabindex="-1" role="dialog"
 	aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-	<form action="/api/publish-file" method="post" enctype="multipart/form-data">
-		<input type="hidden" name="type" value="video">
-		<div class="modal-dialog modal-dialog-centered" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-video fa-lg mr-2"></i>Post a
-						video</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body">
-					<span class="font-weight-bolder">Select a video:</span> <br>
-					<input type="file" id="video-file-input" name="file" accept=".mov,.mp4,.ogg"> <br>
-					<video width="300" height="200" controls>
-						<source id="preview-video" src="#">
-						video unavailable
-					</video>
-					<br>
-					<span class="font-weight-bolder">Add a blurb:</span> <br>
-					<textarea id="video-texta" style="outline:none; width: 100%;" name="blurb"></textarea>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					<button id="video-submit-button" type="submit" class="btn btn-primary">Publish</button>
-				</div>
+	<div class="loading" id="loader" style="visibility:hidden">Loading&#8230;</div>
+	<input type="hidden" name="type" value="video">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-video fa-lg mr-2"></i>Post a
+					video</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<span class="font-weight-bolder">Select a video:</span> <br>
+				<input type="file" id="video-file-input" name="file" accept=".mov,.mp4,.ogg"> <br>
+				<video width="300" height="200" controls>
+					<source id="preview-video" src="#">
+					video unavailable
+				</video>
+				<br>
+				<span class="font-weight-bolder">Add a blurb:</span> <br>
+				<textarea id="video-texta" style="outline:none; width: 100%;" name="blurb"></textarea>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button id="video-submit-button" type="submit" class="btn btn-primary">Publish</button>
 			</div>
 		</div>
-	</form>
+	</div>
 </div>
 
 <script>
@@ -58,6 +57,11 @@
 		});
 
 		$('#video-file-input').on('change', function (event) {
+			if (this.files[0].size > 1000000 * 100) { 	// 100 MB
+				alert("File is too big!");
+				this.value = "";
+				return;
+			};
 			var textarea_value = $("#video-texta").val();
 			var file_value = $("#video-file-input").val();
 			if (textarea_value != '' && file_value != '') {
@@ -73,6 +77,45 @@
 				let blobURL = URL.createObjectURL(file);
 				document.querySelector("video").src = blobURL;
 			}
+		});
+
+		$('#video-submit-button').on('click', function () {
+			$("#loader").css("visibility", "visible");
+			const file = document.getElementById('video-file-input').files[0];
+			// get aws presigned url
+			fetch(`/api/s3-signed-url?contentType=video/${file.name.split('.').pop()}`)
+				.then(function (res) { return res.json() })
+				.then(function (data) {
+					const s3Link = `https://${data.bucketName}.s3.amazonaws.com/${data.fileName}`
+					// upload file to aws
+					fetch(data.signedUrl, {
+						method: "PUT",
+						body: file,
+					})
+					.then(function () {
+						// register post to db
+						$.ajax({
+							type: "POST",
+							url: "/api/post-file",
+							data: {
+								type: 'video',
+								blurb: $("#video-texta").val(),
+								url: s3Link
+							}
+						})
+						.done(function () {
+							$("#loader").css("visibility", "hidden");
+							window.location.replace('/u/home');
+						})
+						.fail(function (err) {
+							$("#loader").css("visibility", "hidden");
+							// handle this
+							console.log(err);
+						})
+					});
+				});
+
+
 		});
 
 	});
