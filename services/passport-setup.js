@@ -2,6 +2,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20');
 const FacebookStrategy = require('passport-facebook')
 const User = require('../models/user-model');
+const Errors = require('./Errors');
 
 passport.serializeUser((user, done) => {
 	done(null, user._id);
@@ -11,7 +12,7 @@ passport.deserializeUser((id, done) => {
 	User.findById(id)
 		.then(user => {
 			if (!user) {
-				done(new Error("passport: user not found"));
+				done(new Errors.UserError("passport: user not found"));
 			}
 			done(null, user);
 		})

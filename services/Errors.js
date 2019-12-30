@@ -8,8 +8,14 @@ class ServerError extends Error {
 		super(message)
 	}
 }
+class UserError extends Error {
+	constructor(message) {
+		super(message)
+	}
+}
 
 module.exports = {
 	ValidationError,
-	ServerError
+	ServerError,
+	UserError
 }
