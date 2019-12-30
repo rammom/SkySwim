@@ -1,0 +1,46 @@
+<div class="modal fade" id="following-modal" data-backdrop="static" tabindex="-1" role="dialog"
+	aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-users fa-lg mr-2"></i>Following
+				</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<% if (profile.following.length == 0) { %>
+				<span class="font-weight-lighter">You're not following anyone.</span>
+				<% } %>
+				<% profile.following.forEach(function(following){ %>
+				<a href="/u/<%= following._id %>" class='following-link'>
+					<div class='card'>
+						<div class='card-body'>
+							<p class='card-text text-left'><img src='<%= following.picture %>' alt='Avatar'
+									class='avatar mr-3'><%= following.username %></p>
+						</div>
+					</div>
+				</a>
+				<% }) %>
+			</div>
+			<!-- <div class="modal-footer">
+				
+			</div> -->
+		</div>
+	</div>
+</div>
+
+<style>
+	.following-link {
+		text-decoration: none !important;
+		color: black;
+	}
+
+	.avatar {
+		vertical-align: middle;
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+	}
+</style>

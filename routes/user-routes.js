@@ -16,6 +16,8 @@ router.get('/home', (req, res, next) => {
 router.get('/:profileId', (req, res, next) => {
 	User.findById(req.params.profileId)
 		.populate('posts')
+		.populate('followers')
+		.populate('following')
 		.then(profile => {
 			if (!profile) next(new Errors.ValidationError('no user'));
 			profile.posts = profile.posts.sort((a, b) => b.createdAt - a.createdAt);

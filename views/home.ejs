@@ -87,7 +87,7 @@
 			.done(function(data) {
 				console.log(data);
 				data.matches.forEach(function(match){
-					$('.options').prepend($("<a href='"+match._id+"' class='match-link'><div class='card'><div class='card-body'><p class='card-text text-left'><img src='" + match.picture +"' alt='Avatar' class='avatar mr-3'>"+match.username+"</p></div></div></a>"))
+					$('.options').prepend($("<a href='/u/"+match._id+"' class='match-link'><div class='card'><div class='card-body'><p class='card-text text-left'><img src='" + match.picture +"' alt='Avatar' class='avatar mr-3'>"+match.username+"</p></div></div></a>"))
 				});
 			})
 			.fail(function(err) {
