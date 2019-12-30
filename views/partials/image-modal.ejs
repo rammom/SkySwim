@@ -100,11 +100,9 @@
 						}
 					})
 					.done(function() {
-						$("#loader").css("visibility", "hidden")
 						window.location.replace('/u/home');
 					})
 					.fail(function(err) {
-						$("#loader").css("visibility", "hidden");
 						// handle this
 						console.log(err);
 					})

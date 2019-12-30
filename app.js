@@ -86,6 +86,7 @@ app.use('/', antiAuthCheck, routes.index);
 // problem validating requests
 app.use(function handleValidationError(error, req, res, next) {
 	if (error instanceof Errors.ValidationError) {
+		console.log(error);
 		return res.status(400).json({
 			type: 'ValidationError',
 			message: error.message
@@ -97,6 +98,7 @@ app.use(function handleValidationError(error, req, res, next) {
 // problem performing task, probably due to server issue
 app.use(function handleServerError(error, req, res, next) {
 	if (error instanceof Errors.ServerError) {
+		console.log(error);
 		return res.status(500).json({
 			type: 'ServerError',
 			message: error.message
@@ -107,6 +109,7 @@ app.use(function handleServerError(error, req, res, next) {
 
 // fallback
 app.use(function handleError(error, req, res, next) {
+	console.log(error);
 	return res.status(500).json({...error});
 });
 
