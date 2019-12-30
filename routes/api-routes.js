@@ -20,14 +20,15 @@ router.post('/post-blurb', (req, res, next) => {
 		User.findById(req.user._id)
 			.then(user => {
 				user.posts.push(newPost._id);
-				user.save().catch(err => {
+				user.save()
+				.then(res.redirect('/u/home'))
+				.catch(err => {
 					next(err);
 				});
 			})
 			.catch(err => {
 				next(err);
 			})
-			.finally(res.redirect('/u/home'));
 	})
 	.catch(err => {
 		next(err);
@@ -92,13 +93,12 @@ router.post('/post-file', (req, res, next) => {
 		User.findById(req.user._id)
 			.then(user => {
 				user.posts.push(newPost._id);
-				user.save().catch(err => { next(err) });
+				user.save()
+				.then(res.redirect('/u/home'))
+				.catch(err => { next(err) });
 			})
 			.catch(err => {
 				return next(err);
-			})
-			.finally(() => {
-				return res.redirect('/u/home');
 			})
 	})
 	.catch(err => {
