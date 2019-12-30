@@ -109,8 +109,17 @@ app.use(function handleServerError(error, req, res, next) {
 
 // fallback
 app.use(function handleError(error, req, res, next) {
+	console.log('fallback')
 	console.log(error);
-	return res.status(500).json({...error});
+	if (error.message == "user not found") {
+		console.log("deleting cookie")
+		res.set("Set-Cookie", "express:sess=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
+		res.set("Set-Cookie", "express:sess.sig=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
+	}
+	return res.status(500).send({
+		type: 'Error',
+		message: error.message
+	});
 });
 
 

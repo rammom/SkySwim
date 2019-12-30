@@ -130,5 +130,177 @@ router.post('/post-file', (req, res, next) => {
 	});
 });
 
+// follow a friend
+router.post('/follow', async (req, res, next) => {
+	const friendId = req.body.user;
+	let error = null;
+	
+	// validate request body
+	if (!friendId | friendId == req.user._id.toString()) 
+		return next(new Errors.ValidationError('bad request'));
+
+
+	// find friend in database
+	let friend = null;
+	await User.findById(friendId)
+		.then(f => friend = f)
+		.catch(err => error = err);
+	
+	if (!friend) 
+		return next(new Errors.ValidationError('bad request'));
+	if (error) 
+		return next(error);
+	
+	// find user in database
+	let user = null;
+	await User.findById(req.user._id)
+		.then(u => user = u)
+		.catch(err => error = err);
+
+	if (!user)
+		return next(new Errors.ServerError("can't find logged in user. this should never happen"));
+	if (error)
+		return next(error);
+
+	// record follow in both documents
+	user.following.push(friend._id);
+	friend.followers.push(user._id);
+
+	await user.save()
+		.then(u => user = u)
+		.catch(err => error = err);
+
+	if (error) 
+		return next(error);
+
+	await friend.save()
+		.then(f => friend = f)
+		.catch(err => error = err);
+
+	if (error) {
+		// correct the previously saved user
+		user.following = user.following.filter((x) => x.toString() != friend._id.toString());
+
+		await user.save()
+			.then(u => user = u)
+			.catch(err => {
+				// in this situation, I would queue this job to be completed once problem is fixed
+				console.log("WARNING could not correct user in following error, discrepancies persist\n"+err);
+			})
+
+		return next(error);
+	}
+
+	return res.status(200).json({
+		message: 'ok'
+	});
+	
+});
+
+// unfollow a friend
+router.post('/unfollow', async (req, res, next) => {
+	console.log('starting unfollow');
+	const friendId = req.body.user;
+	let error = null;
+
+	// validate request body
+	if (!friendId | friendId == req.user._id.toString())
+		return next(new Errors.ValidationError('bad request'));
+
+
+	// find friend in database
+	let friend = null;
+	await User.findById(friendId)
+		.then(f => friend = f)
+		.catch(err => error = err);
+
+	if (!friend)
+		return next(new Errors.ValidationError('bad request'));
+	if (error)
+		return next(error);
+
+	// find user in database
+	let user = null;
+	await User.findById(req.user._id)
+		.then(u => user = u)
+		.catch(err => error = err);
+
+	if (!user)
+		return next(new Errors.ServerError("can't find logged in user. this should never happen"));
+	if (error)
+		return next(error);
+
+	// remove follow from both documents
+	user.following = user.following.filter(x => x.toString() != friend._id.toString());
+	friend.followers = friend.followers.filter(x => x.toString() != user._id.toString());
+
+
+	await user.save()
+		.then(u => user = u)
+		.catch(err => error = err);
+
+	if (error)
+		return next(error);
+
+	await friend.save()
+		.then(f => friend = f)
+		.catch(err => error = err);
+
+	console.log('unfollowed')
+
+
+	if (error) {
+		// correct the previously saved user
+		user.following.push(friend._id);
+
+		await user.save()
+			.then(u => user = u)
+			.catch(err => {
+				// in this situation, I would queue this job to be completed once problem is fixed
+				console.log("WARNING could not correct user in following error, discrepancies persist\n"+err);
+			})
+
+		return next(error);
+	}
+
+	return res.status(200).json({
+		message: 'ok'
+	});
+
+});
+
+// find users based on name query
+router.post('/search-users', async (req, res, next) => {
+	const searchText = req.body.searchText;
+	let error = null;
+
+	// validate request body
+	if (!searchText)
+		return next(new Errors.ValidationError('bad request'));
+
+
+	// search for matching users
+	let users = null;
+	await User.find({ username: { $regex: searchText, $options: 'i' }})
+		.limit(10)
+		.then(us => users = us)
+		.catch(err => error = err);
+
+	if (error) 
+		return next(error);
+
+	// only send required fields
+	users = users.map(user => {
+		return {
+			_id: user._id,
+			username: user.username,
+			picture: user.picture
+		}
+	})
+
+	return res.status(200).json({
+		matches: users
+	});
+});
 
 module.exports = router;

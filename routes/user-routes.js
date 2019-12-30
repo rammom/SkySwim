@@ -13,4 +13,17 @@ router.get('/home', (req, res, next) => {
 		});
 });
 
+router.get('/:profileId', (req, res, next) => {
+	User.findById(req.params.profileId)
+		.populate('posts')
+		.then(profile => {
+			if (!profile) next(new Errors.ValidationError('no user'));
+			profile.posts = profile.posts.sort((a, b) => b.createdAt - a.createdAt);
+			res.render('profile', { 
+				user: req.user,
+				profile: profile
+			});
+		});
+})
+
 module.exports = router;
