@@ -55,7 +55,7 @@ passport.use(
 passport.use(
 	new FacebookStrategy({
 		// options for google strategy
-		callbackURL: '/auth/facebook/redirect',
+		callbackURL: `${process.env.SS_HOSTNAME}/auth/google/redirect`,
 		clientID: process.env.SS_FACEBOOK_APP_ID,
 		clientSecret: process.env.SS_FACEBOOK_APP_SECRET
 	}, (accessToken, refreshToken, profile, done) => {
