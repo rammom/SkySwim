@@ -7,7 +7,7 @@ const Errors = require('../services/Errors');
 
 // publish a new blurb
 router.post('/post-blurb', (req, res, next) => {
-	if (!req.body.blurb) throw new Errors.ValidationError({message: 'blurb cannot be empty'});
+	if (!req.body.blurb) return next(new Errors.ValidationError('blurb cannot be empty'));
 
 	new Post({
 		type: 'blurb',
@@ -23,10 +23,20 @@ router.post('/post-blurb', (req, res, next) => {
 				user.save()
 				.then(res.redirect('/u/home'))
 				.catch(err => {
+					// could not complete request, remove post from db
+					newPost.remove()
+					.catch(err => {
+						console.log("FAILED to remove unlinked post -> " + newPost._id + "\n" + err);
+					})
 					next(err);
 				});
 			})
 			.catch(err => {
+				// could not complete request, remove post from db
+				newPost.remove()
+				.catch(err => {
+					console.log("FAILED to remove unlinked post -> " + newPost._id + "\n" + err);
+				})
 				next(err);
 			})
 	})
@@ -49,7 +59,6 @@ router.get('/s3-signed-url', (req, res, next) => {
 		Key: fileName,
 		ContentType: contentType,
 	};
-	console.log(contentType.split('/').pop());
 	const options = {
 		accessKeyId: process.env.SS_AWS_ID,
 		secretAccessKey: process.env.SS_AWS_SECRET,
@@ -58,7 +67,6 @@ router.get('/s3-signed-url', (req, res, next) => {
 	const s3 = new AWS.S3(options);
 	s3.getSignedUrl('putObject', params, (err, data) => {
 		if (err) next(err);
-		console.log(data);
 		res.status(200).json({
 			signedUrl: data,
 			bucketName: process.env.SS_AWS_BUCKET,
@@ -95,9 +103,25 @@ router.post('/post-file', (req, res, next) => {
 				user.posts.push(newPost._id);
 				user.save()
 				.then(res.redirect('/u/home'))
-				.catch(err => { next(err) });
+				.catch(err => { 
+
+					// could not complete request, remove post from db
+					newPost.remove()
+					.catch(err => {
+						console.log("FAILED to remove unlinked post -> "+newPost._id+"\n"+err);
+					})
+
+					next(err) 
+				});
 			})
 			.catch(err => {
+
+				// could not complete request, remove post from db
+				newPost.remove()
+				.catch(err => {
+					console.log("FAILED to remove unlinked post -> " + newPost._id + "\n" + err);
+				})
+
 				return next(err);
 			})
 	})
