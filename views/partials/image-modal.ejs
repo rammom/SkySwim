@@ -1,29 +1,28 @@
 <div class="modal fade" id="image-modal" data-backdrop="static" tabindex="-1" role="dialog"
 	aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-	<form action="/api/publish-file" method="post" enctype="multipart/form-data">
-		<input type="hidden" name="type" value="image">
-		<div class="modal-dialog modal-dialog-centered" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-image fa-lg mr-2"></i>Post an image</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body">
-					<span class="font-weight-bolder">Select an image:</span> <br>
-					<input type="file" name="file" id="image-file-input" accept=".png,.jpg,.jpeg" onchange="readURL(this);"> <br>
-					<img id="preview-image" src="#" alt="no preview available" /> <br>
-					<span class="font-weight-bolder">Add a blurb:</span> <br>
-					<textarea id="image-texta" style="outline:none; width: 100%;" name="blurb"></textarea>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					<button id="image-submit-button" type="submit" class="btn btn-primary">Publish</button>
-				</div>
+	<div class="loading" id="loader" style="visibility:hidden">Loading&#8230;</div>
+	<input type="hidden" name="type" value="image">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-image fa-lg mr-2"></i>Post an image</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<span class="font-weight-bolder">Select an image:</span> <br>
+				<input type="file" name="file" id="image-file-input" accept="image/png,image/jpg,image/jpeg" onchange="readURL(this);"> <br>
+				<img id="preview-image" src="#" alt="no preview available" /> <br>
+				<span class="font-weight-bolder">Add a blurb:</span> <br>
+				<textarea id="image-texta" style="outline:none; width: 100%;" name="blurb"></textarea>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button id="image-submit-button" type="submit" class="btn btn-primary">Publish</button>
 			</div>
 		</div>
-	</form>
+	</div>
 </div>
 
 <script>
@@ -55,6 +54,11 @@
 		});
 
 		$('#image-file-input').on('change', function () {
+			if (this.files[0].size > 1000000 * 100) { 	// 100 MB
+				alert("File is too big!");
+				this.value = "";
+				return;
+			};
 			var textarea_value = $("#image-texta").val();
 			var file_value = $("#image-file-input").val();
 			if (textarea_value != '' && file_value != '') {
@@ -68,6 +72,46 @@
 					.width(150)
 					.height(200);
 			}
+		});
+
+
+		$('#image-submit-button').on('click', function() {
+			$("#loader").css("visibility", "visible");
+			const file = document.getElementById('image-file-input').files[0];
+			// get aws presigned url
+			fetch(`/api/s3-signed-url?contentType=image/${file.name.split('.').pop()}`)
+			.then(function(res) { return res.json() })
+			.then(function(data) {
+				const s3Link = `https://${data.bucketName}.s3.amazonaws.com/${data.fileName}`
+				// upload file to aws
+				fetch(data.signedUrl, {
+					method: "PUT",
+					body: file,
+				})
+				.then(function() {
+					// register post to db
+					$.ajax({
+						type: "POST",
+						url: "/api/post-file",
+						data: {
+							type: 'image',
+							blurb: $("#image-texta").val(),
+							url: s3Link
+						}
+					})
+					.done(function() {
+						$("#loader").css("visibility", "hidden")
+						window.location.replace('/u/home');
+					})
+					.fail(function(err) {
+						$("#loader").css("visibility", "hidden");
+						// handle this
+						console.log(err);
+					})
+				});
+			});
+
+
 		});
 
 		
