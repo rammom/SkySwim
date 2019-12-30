@@ -22,7 +22,6 @@ const Errors = require('./services/Errors');
 
 
 
-
 // connect to mongodb
 mongoose.connect(
 	process.env.SS_MONGO_URI, 
