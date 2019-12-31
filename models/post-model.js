@@ -4,17 +4,23 @@ const ObjectId = Schema.Types.ObjectId;
 
 const postSchema = new Schema({
 	type: { type: String, enum: ['blurb', 'image', 'video'] },
-	blurb: String,
-	image: String,
-	video: String,
-	user: { type: ObjectId, ref: 'user', required: true },
-	createdAt: Date
+	blurb: { type: String, required: true },
+	media: String,
+	user: {
+		id: { type: ObjectId, ref: 'user', required: true },
+		username: String,
+		picture: String
+	},
+	created: { type: Date }
 });
 
-postSchema.pre('save', function(next) {
-	if (!this.createdAt) this.createdAt = new Date();
-	next();
-});
+// add timestamp
+postSchema.pre('save', function() {
+	if (!this.created) this.created = new Date();
+})
+
+// make search by user quick and set created to -1 to sort by newest
+postSchema.index({ "user.id": 1, created: -1 });
 
 const Post = mongoose.model('post', postSchema);
 

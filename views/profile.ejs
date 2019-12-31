@@ -7,12 +7,12 @@
 		<div class="col col-md-12 col-lg-3">
 			<h6 class="text-center"><img src="<%= profile.picture %>" alt="Avatar" class="avatar-lg mr-3"></h6>
 			<h6 class="text-center"><%= profile.username %></h6>
-			<p class="follow-metrics text-center" data-toggle="modal" data-target="#follower-modal"><%= profile.followers.length %> Followers</span>
-			<p class="follow-metrics text-center" data-toggle="modal" data-target="#following-modal"><%= profile.following.length %> Following</span>
+			<p class="follow-metrics text-center" data-toggle="modal" data-target="#follower-modal"><%= followers.length %> Followers</span>
+			<p class="follow-metrics text-center" data-toggle="modal" data-target="#following-modal"><%= followees.length %> Following</span>
 			<hr>
 			<% if (user._id.toString() != profile._id.toString()) { %>
 				<input type="hidden" id="profileId" name="profileId" value="<%= profile._id %>">
-				<% if (user.following.includes(profile._id)) { %>
+				<% if (following) { %>
 					<h6 class="text-center"><button type="button" id="unfollow-button" class="btn btn-primary" style="width: 100%">Following</button></h6>
 				<% } else {%>
 					<h6 class="text-center"><button type="button" id="follow-button" class="btn btn-outline-primary" style="width: 100%">Follow +</button></h6>
@@ -23,7 +23,7 @@
 			<h5 class="text-center">Recent Activity</h5>
 			<div class="feed mt-3 mb-5">
 				<!-- feed goes here, figure this out -->
-				<% profile.posts.forEach(function(post) { %>
+				<% posts.forEach(function(post) { %>
 				<div class="card mb-3">
 					<% if (post.type == 'image') { %>
 					<img src="<%= post.image %>" class="card-img-top" alt="img">

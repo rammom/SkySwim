@@ -9,14 +9,14 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<% if (profile.followers.length == 0) { %>
+				<% if (followers.length == 0) { %>
 					<span class="font-weight-lighter">No followers :(</span>
 				<% } %>
-				<% profile.followers.forEach(function(follower){ %>
-					<a href="/u/<%= follower._id %>" class='follower-link'>
+				<% followers.forEach(function(follower){ %>
+					<a href="/u/<%= follower.followee._id %>" class='follower-link'>
 						<div class='card'>
 							<div class='card-body'>
-								<p class='card-text text-left'><img src='<%= follower.picture %>' alt='Avatar' class='avatar mr-3'><%= follower.username %></p>
+								<p class='card-text text-left'><img src='<%= follower.followee.picture %>' alt='Avatar' class='avatar mr-3'><%= follower.followee.username %></p>
 							</div>
 						</div>
 					</a>

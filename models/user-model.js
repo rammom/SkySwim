@@ -1,24 +1,17 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const ObjectId = Schema.Types.ObjectId;
 
 const userSchema = new Schema({
 	username: String,
-	picture: String,
+	picture: { type: String, default: "https://josephwojowski.files.wordpress.com/2016/02/orange-twitter-egg.png?w=400" },
 	googleId: String,
-	facebookId: String,
-	posts: [{ type: ObjectId, ref: 'post' }],
-	following: [{ type: ObjectId, ref: 'user' }],
-	followers: [{ type: ObjectId, ref: 'user' }]
+	facebookId: String
 });
 
-userSchema.pre('save', function (next) {
-	if (!this.posts) this.posts = [];
-	if (!this.following) this.following = [];
-	if (!this.followers) this.followers = [];
-	if (!this.picture) this.picture = "https://josephwojowski.files.wordpress.com/2016/02/orange-twitter-egg.png?w=400";
-	next();
-});
+// make search quick
+userSchema.index({ username: 1 });
+userSchema.index({ googleId: 1 });
+userSchema.index({ facebookId: 1 });
 
 const User = mongoose.model('user', userSchema);
 

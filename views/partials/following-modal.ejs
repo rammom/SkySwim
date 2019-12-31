@@ -10,23 +10,20 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<% if (profile.following.length == 0) { %>
+				<% if (followees.length == 0) { %>
 				<span class="font-weight-lighter">You're not following anyone.</span>
 				<% } %>
-				<% profile.following.forEach(function(following){ %>
-				<a href="/u/<%= following._id %>" class='following-link'>
+				<% followees.forEach(function(followee){ %>
+				<a href="/u/<%= followee.user._id %>" class='following-link'>
 					<div class='card'>
 						<div class='card-body'>
-							<p class='card-text text-left'><img src='<%= following.picture %>' alt='Avatar'
-									class='avatar mr-3'><%= following.username %></p>
+							<p class='card-text text-left'><img src='<%= followee.user.picture %>' alt='Avatar'
+									class='avatar mr-3'><%= followee.user.username %></p>
 						</div>
 					</div>
 				</a>
 				<% }) %>
 			</div>
-			<!-- <div class="modal-footer">
-				
-			</div> -->
 		</div>
 	</div>
 </div>

@@ -1,6 +1,5 @@
 <div class="modal fade" id="blurb-modal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
 	aria-hidden="true">
-	<form action="/api/post-blurb" method="post">
 		<div class="modal-dialog modal-dialog-centered" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -16,7 +15,6 @@
 				</div>
 			</div>
 		</div>
-	</form>
 </div>
 
 <script>
@@ -30,6 +28,27 @@
 			} else {
 				$('#blurb-submit-button').attr('disabled', true);
 			}
+		});
+
+		$('#blurb-submit-button').on('click', function() {
+			const blurb = $("#blurb-texta").val();
+			const type = 'blurb';
+
+			$.ajax({
+				type: "POST",
+				url: "/api/post",
+				data: {
+					blurb: blurb,
+					type: type
+				}
+			})
+			.done(function(data) {
+				return window.location.reload();
+			})
+			.fail(function(err) {
+				// do something
+				console.log(err);
+			})
 		});
 	});
 </script>
