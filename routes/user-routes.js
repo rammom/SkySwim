@@ -21,8 +21,6 @@ router.get('/home', async (req, res, next) => {
 	if (error)
 		return next(error);
 
-	console.log(req.user._id)
-
 	res.render('home', { user: req.user, posts: posts });
 });
 
