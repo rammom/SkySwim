@@ -6,56 +6,141 @@ const AWS = require('aws-sdk');
 const Errors = require('../services/Errors');
 
 // publish a new blurb
-router.post('/post-blurb', (req, res, next) => {
-	if (!req.body.blurb) return next(new Errors.ValidationError('blurb cannot be empty'));
+router.post('/post-blurb', async (req, res, next) => {
+	const blurb = req.body.blurb;
+	let error = null;
 
-	new Post({
+	// validate request body
+	if (!req.body.blurb) 
+		return next(new Errors.ValidationError('blurb cannot be empty'));
+
+	// find current user
+	let user = null;
+	await User.findById(req.user._id)
+		.then(u => user = u)
+		.catch(err => error = err);
+
+	if (!user)
+		return next(new Errors.ServerError('failed to find user'));
+	if (error)
+		return next(error);
+
+	// make post
+	let newPost = null;
+	await new Post({
 		type: 'blurb',
-		blurb: req.body.blurb,
+		blurb: blurb,
 		user: req.user._id
-	})
-	.save()
-	.then(newPost => {
-		console.log('new post created: ' + newPost);
-		User.findById(req.user._id)
-			.then(user => {
-				user.posts.push(newPost._id);
-				user.save()
-				.then(res.redirect('/u/home'))
-				.catch(err => {
-					// could not complete request, remove post from db
-					newPost.remove()
-					.catch(err => {
-						console.log("FAILED to remove unlinked post -> " + newPost._id + "\n" + err);
-					})
-					next(err);
-				});
-			})
+	}).save()
+		.then(np => newPost = np)
+		.catch(err => error = err);
+	
+	if (!newPost)
+		return next(new Errors.ServerError('failed to save post'));
+	if (error)
+		return next(error);
+
+	console.log('new post created: ' + newPost);
+
+	// add post to user
+	user.posts.push(newPost._id);
+	
+	// save updated user to db
+	await user.save()
+		.then(u => user = u)
+		.catch(err => error = err);
+	
+	if (error) {
+		// process failed. backtrack changes
+		await newPost.remove()
 			.catch(err => {
-				// could not complete request, remove post from db
-				newPost.remove()
-				.catch(err => {
-					console.log("FAILED to remove unlinked post -> " + newPost._id + "\n" + err);
-				})
-				next(err);
+				// Ideally this job would be added to a queue, to be completed once the server is fixed
+				console.log("FAILED to remove unlinked post -> " + newPost._id + "\n" + err);
 			})
-	})
-	.catch(err => {
-		next(err);
-	});
+		next(error);
+	}
+
+	return res.redirect('/u/home');
 
 });
 
+// publish an image or video 
+router.post('/post-file', async (req, res, next) => {
+	const type = req.body.type;
+	const blurb = req.body.blurb;
+	const image = (req.body.type == 'image') ? req.body.url : null;
+	const video = (req.body.type == 'video') ? req.body.url : null;
+	let error = null;
+	
+	// validate request body
+	if ( !(type == 'image' || type == 'video') || !req.body.url	|| !blurb){
+		return next(new Errors.ValidationError('bad request'));
+	}
+	
+	// find current user
+	let user = null;
+	await User.findById(req.user._id)
+		.then(u => user = u)
+		.catch(err => error = err);
+
+	if (!user)
+		return next(new Errors.ServerError('failed to find user'));
+	if (error)
+		return next(error);
+
+	// create and save post
+	let newPost = null;
+	await new Post({
+		type,
+		blurb,
+		image,
+		video,
+		user: req.user._id
+	})
+	.save()
+	.then(np => newPost = np)
+	.catch(err => error = err);
+	
+	if (error)
+		return next(error);
+	
+	console.log('new post created: ' + newPost);
+
+	// add post to user
+	user.posts.push(newPost._id);
+
+	// save user
+	await user.save()
+		.then(u => user = u)
+		.catch(err => error = err);
+		
+	if (error) {
+		// process failed. backtrack changes
+		await newPost.remove()
+			.catch(err => {
+				// Ideally this job would be added to a queue, to be completed once the server is fixed
+				console.log("FAILED to remove unlinked post -> " + newPost._id + "\n" + err);
+			})
+		next(error);
+	}
+
+	return res.redirect('/u/home');
+		
+});
 
 // Get AWS signed url in order to upload image to s3 directly from the client 
-router.get('/s3-signed-url', (req, res, next) => {
+router.get('/s3-signed-url', async (req, res, next) => {
 	const contentType = req.query.contentType.toLowerCase();
-	if (!contentType) return next(new Errors.ValidationError('content-type required'));
-	if (!(contentType.startsWith("image/") || contentType.startsWith("video/"))) return next(new Errors.ValidationError("invalid content-type"));
+
+	// validate request body
+	if (!contentType || !(contentType.startsWith("image/") || contentType.startsWith("video/")))
+		return next(new Errors.ValidationError("invalid content-type"));
+
+	// configure AWS.S3 
 	const fileName = Date.now().toString() + '.' + contentType.split('/').pop();
 	const params = {
 		Bucket: process.env.SS_AWS_BUCKET,
-		Expires: 30 * 60, // 30 minutes
+		// Expires: 30 * 60, // 30 minutes
 		Key: fileName,
 		ContentType: contentType,
 	};
@@ -63,10 +148,14 @@ router.get('/s3-signed-url', (req, res, next) => {
 		accessKeyId: process.env.SS_AWS_ID,
 		secretAccessKey: process.env.SS_AWS_SECRET,
 		signatureVersion: 'v4'
-	}
+	};
 	const s3 = new AWS.S3(options);
+
+	// request signed url from s3
 	s3.getSignedUrl('putObject', params, (err, data) => {
 		if (err) next(err);
+
+		// return signed url to client for direct upload
 		res.status(200).json({
 			signedUrl: data,
 			bucketName: process.env.SS_AWS_BUCKET,
@@ -74,60 +163,6 @@ router.get('/s3-signed-url', (req, res, next) => {
 		})
 	});
 
-});
-
-// publish an image or video 
-router.post('/post-file', (req, res, next) => {
-	const type = req.body.type;
-	const blurb = req.body.blurb;
-	const image = (req.body.type == 'image') ? req.body.url : null;
-	const video = (req.body.type == 'video') ? req.body.url : null;
-	const user = req.user._id;
-
-	if ( !(type == 'image' || type == 'video') || !req.body.url	|| !blurb){
-		return next(new Errors.ValidationError('bad request'));
-	}
-
-	new Post({
-		type,
-		blurb,
-		image,
-		video,
-		user
-	})
-	.save()
-	.then(newPost => {
-		console.log('new post created: ' + newPost);
-		User.findById(req.user._id)
-			.then(user => {
-				user.posts.push(newPost._id);
-				user.save()
-				.then(res.redirect('/u/home'))
-				.catch(err => { 
-
-					// could not complete request, remove post from db
-					newPost.remove()
-					.catch(err => {
-						console.log("FAILED to remove unlinked post -> "+newPost._id+"\n"+err);
-					})
-
-					next(err) 
-				});
-			})
-			.catch(err => {
-
-				// could not complete request, remove post from db
-				newPost.remove()
-				.catch(err => {
-					console.log("FAILED to remove unlinked post -> " + newPost._id + "\n" + err);
-				})
-
-				return next(err);
-			})
-	})
-	.catch(err => {
-		return next(err);
-	});
 });
 
 // follow a friend
