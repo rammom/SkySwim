@@ -1,5 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const Post = require('../models/post-model');
+const User = require('../models/user-model');
+const Followee = require('../models/followee-model');
+const AWS = require('aws-sdk');
+const Errors = require('../services/Errors');
 
 router.get('/s3-signed-url', async (req, res, next) => {
 	const contentType = req.query.contentType.toLowerCase();
