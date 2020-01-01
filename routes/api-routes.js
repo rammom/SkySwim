@@ -3,6 +3,7 @@ const router = express.Router();
 const Post = require('../models/post-model');
 const User = require('../models/user-model');
 const Follow = require('../models/follow-model');
+const Feed = require('../models/feed-model');
 const AWS = require('aws-sdk');
 const Errors = require('../services/Errors');
 
@@ -41,6 +42,9 @@ router.get('/s3-signed-url', async (req, res, next) => {
 	});
 
 });
+
+
+
 router.get('/users', async (req, res, next) => {
 	const text = req.query.text;
 	let error = null;
@@ -62,6 +66,8 @@ router.get('/users', async (req, res, next) => {
 
 	res.status(200).json({ users });
 });
+
+
 
 router.post('/post', async (req, res, next) => {
 	const type = req.body.type;
@@ -92,11 +98,28 @@ router.post('/post', async (req, res, next) => {
 		.then(p => newPost = p)
 		.catch(e => error = e);
 
+
+	// fan out to followers with cached feeds, don't await to not block
+	let feedLimit = parseInt(process.env.SS_FEED_CACHE_LIMIT)
+	Follow.find({ user: req.user._id })
+		.then(follows => {
+			// send out update for each follower
+			follows.forEach(relation => {
+				Feed.findOneAndUpdate({ user: relation.follower }, { $push: { posts: { $each: [newPost], $position: 0, $slice: feedLimit } }}).exec();
+			})
+		});
+	
+	// add to user's feed
+	await Feed.findOneAndUpdate({ user: req.user._id }, { $push: { posts: { $each: [newPost], $position: 0, $slice: feedLimit } } }).exec();
+
 	if (error)
 		return next(error);
 
 	return res.status(200).json(newPost);
 });
+
+
+
 router.post('/follow', async (req, res, next) => {
 	const user = req.body.user;
 	const follower = req.user._id;
@@ -126,8 +149,13 @@ router.post('/follow', async (req, res, next) => {
 	if (error)
 		return next(error);
 
+	// invalidate user feed
+	await Feed.findOneAndRemove({ user: req.user._id }).exec();
+
 	return res.status(200).json(follow);
 });
+
+
 
 router.post('/unfollow', async (req, res, next) => {
 	const user = req.body.user;
