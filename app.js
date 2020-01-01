@@ -54,8 +54,6 @@ app.use(morgan('tiny'));
 
 
 
-
-
 // session and passport initialization
 app.use(cookieSession({
 	keys: [process.env.SS_COOKIE_KEY]
