@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user-model');
 const Post = require('../models/post-model');
-const Followee = require('../models/followee-model');
+const Follow = require('../models/follow-model');
 
 // gets user's posts temporarily
 // TODO: make this get user's newsfeed
@@ -10,16 +10,31 @@ const Followee = require('../models/followee-model');
 router.get('/home', async (req, res, next) => {
 	let error = null;
 
-	// find recent posts from authenticated user
-	let posts = null;
-	await Post.find({ "user.id": req.user._id })
-		.sort({ created: -1 })
-		.limit(10)
-		.then(ps => posts = ps)
-		.catch(err => error = err);
+	// find people the user is following
+	let followers = [];
+	await Follow.find({ follower: req.user })
+		.then(f => followers = f)
+		.catch(e => error = e);
 	
-	if (error)
+	if (error) 
 		return next(error);
+
+	// map to followee ids and add user's id
+	followers = followers.map(f => f.user);
+	followers.push(req.user._id);
+
+	console.log(followers);
+
+	// find user's follower's recent posts
+	let posts = null;
+	await Post.find({ "user.id": { $in: followers } })
+		.sort({ created: -1 })
+		.limit(30)
+		.then(p => posts = p)
+		.catch(e => error = e);
+
+	if (error)
+		return next(error)
 
 	res.render('home', { user: req.user, posts: posts });
 });
@@ -53,9 +68,9 @@ router.get('/:profileId', async (req, res, next) => {
 
 	// check follow status between users, fast because of index
 	let following = false;
-	await Followee.findOne({ user: profile._id, followee: req.user._id })
-		.then(fee => {
-			if (fee) return following = true;
+	await Follow.findOne({ user: profile._id, follower: req.user._id })
+		.then(f => {
+			if (f) return following = true;
 		})
 		.catch(err => error = err);
 	
@@ -64,8 +79,8 @@ router.get('/:profileId', async (req, res, next) => {
 
 	// get followers and followees
 	let followers = null;
-	await Followee.find({ user: profile._id })
-		.populate('followee')
+	await Follow.find({ user: profile._id })
+		.populate('follower')
 		.then(f => followers = f)
 		.catch(e => error = e);
 
@@ -73,7 +88,7 @@ router.get('/:profileId', async (req, res, next) => {
 		return next(error);
 
 	let followees = null;
-	await Followee.find({ followee: profile._id })
+	await Follow.find({ follower: profile._id })
 		.populate('user')
 		.then(f => followees = f)
 		.catch(e => error = e);

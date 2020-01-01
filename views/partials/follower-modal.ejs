@@ -13,10 +13,10 @@
 					<span class="font-weight-lighter">No followers :(</span>
 				<% } %>
 				<% followers.forEach(function(follower){ %>
-					<a href="/u/<%= follower.followee._id %>" class='follower-link'>
+					<a href="/u/<%= follower.follower._id %>" class='follower-link'>
 						<div class='card'>
 							<div class='card-body'>
-								<p class='card-text text-left'><img src='<%= follower.followee.picture %>' alt='Avatar' class='avatar mr-3'><%= follower.followee.username %></p>
+								<p class='card-text text-left'><img src='<%= follower.follower.picture %>' alt='Avatar' class='avatar mr-3'><%= follower.follower.username %></p>
 							</div>
 						</div>
 					</a>

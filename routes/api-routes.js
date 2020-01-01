@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Post = require('../models/post-model');
 const User = require('../models/user-model');
-const Followee = require('../models/followee-model');
+const Follow = require('../models/follow-model');
 const AWS = require('aws-sdk');
 const Errors = require('../services/Errors');
 
@@ -99,7 +99,7 @@ router.post('/post', async (req, res, next) => {
 });
 router.post('/follow', async (req, res, next) => {
 	const user = req.body.user;
-	const followee = req.user._id;
+	const follower = req.user._id;
 	let error = null;
 
 	// validate request
@@ -107,33 +107,31 @@ router.post('/follow', async (req, res, next) => {
 		return Errors.ValidationError('invalid request');
 
 	// check if relationship already exists
-	let fee = null;
-	await Followee.findOne({ user, followee })
-		.then(f => fee = f)
+	let follow = null;
+	await Follow.findOne({ user, follower })
+		.then(f => follow = f)
 		.catch(e => error = e);
 
-	if (fee)
+	if (follow)
 		return next(Errors.ValidationError('invalid request'));
 	if (error)
 		return next(error);
 
-	// create a followee relationship
-	console.log('mending')
-	await new Followee({ user, followee })
+	// create a follow relationship
+	await new Follow({ user, follower })
 		.save()
-		.then(f => fee = f)
+		.then(f => follow = f)
 		.catch(e => error = e);
 
 	if (error)
 		return next(error);
 
-	console.log("returning: " + fee)
-	return res.status(200).json(fee);
+	return res.status(200).json(follow);
 });
 
 router.post('/unfollow', async (req, res, next) => {
 	const user = req.body.user;
-	const followee = req.user._id;
+	const follower = req.user._id;
 	let error = null;
 
 	// validate request
@@ -141,13 +139,13 @@ router.post('/unfollow', async (req, res, next) => {
 		return Errors.ValidationError('invalid request');
 
 	// delete relationship
-	await Followee.findOneAndDelete({ user, followee })
+	await Follow.findOneAndDelete({ user, follower })
 		.catch(e => error = e);
 
 	if (error)
 		return next(error);
 
-	return res.status(200).json();
+	return res.status(200).json({});
 });
 
 module.exports = router;

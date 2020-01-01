@@ -48,11 +48,11 @@
 							<div class="col col-sm-12 col-md-10">
 								<blockquote class="blockquote card-text">
 									<p class="mb-0"><%= post.blurb %></p>
-									<footer class="blockquote-footer"><%= user.username %></footer>
+									<footer class="blockquote-footer"><%= post.user.username %></footer>
 								</blockquote>
 							</div>
 							<div class="col col-sm-12 col-md-2">
-								<h6 class="text-right"><img src="<%= user.picture %>" alt="Avatar" class="avatar mr-3"></h6>
+								<h6 class="text-right"><img src="<%= post.user.picture %>" alt="Avatar" class="avatar mr-3"></h6>
 							</div>
 							
 							<p class="card-text"></p>

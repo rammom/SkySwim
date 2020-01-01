@@ -43,7 +43,7 @@ passport.use(
 		else {
 			// create a new user
 			await new User({
-				googleId: profile._id,
+				googleId: profile.id,
 				username: profile.displayName,
 				picture: profile._json.picture
 			})
@@ -86,7 +86,7 @@ passport.use(
 		else {
 			// create a new user
 			await new User({
-				facebookId: profile._id,
+				facebookId: profile.id,
 				username: profile.displayName,
 				picture: profile._json.picture
 			})
