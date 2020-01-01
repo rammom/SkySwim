@@ -150,7 +150,12 @@ router.post('/follow', async (req, res, next) => {
 		return next(error);
 
 	// invalidate user feed
-	await Feed.findOneAndRemove({ user: req.user._id }).exec();
+	await Feed.findOneAndRemove({ user: req.user._id })
+		.exec()
+		.catch(e => error = e);
+
+	if (error)
+		return next(error);
 
 	return res.status(200).json(follow);
 });
