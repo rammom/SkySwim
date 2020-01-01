@@ -90,7 +90,91 @@
           }
         }
       }
-    },
+	},
+	"/api/post/user": {
+		"get": {
+			"description": "Get batch of user's posts based on page value",
+			"tags": [
+				"/api"
+			],
+			"parameters": [
+				{
+					"name": "page",
+					"description": "page offset of posts",
+					"in": "query",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string",
+								"example": "1"
+							}
+						}
+					}
+				},
+				{
+					"name": "user",
+					"description": "user id",
+					"in": "query",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string",
+								"example": "1fh289rg813h780e73801h"
+							}
+						}
+					}
+				}
+			],
+			"responses": {
+				"200": {
+					"description": "Posts returned"
+				},
+				"400": {
+					"description": "Invalid request. Content-Type must be provided"
+				},
+				"default": {
+					"description": "Unexpected error"
+				}
+			}
+		}
+	},
+	"/api/post/feed": {
+		"get": {
+			"description": "Get batch of feed posts based on page value",
+			"tags": [
+				"/api"
+			],
+			"parameters": [
+				{
+					"name": "page",
+					"description": "page offset of posts",
+					"in": "query",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string",
+								"example": "1"
+							}
+						}
+					}
+				}
+			],
+			"responses": {
+				"200": {
+					"description": "Posts returned"
+				},
+				"400": {
+					"description": "Invalid request. Content-Type must be provided"
+				},
+				"default": {
+					"description": "Unexpected error"
+				}
+			}
+		}
+	},
     "/api/post": {
       "post": {
         "description": "Creates a post",
@@ -132,8 +216,8 @@
             "description": "Unexpected error"
           }
         }
-      }
-    },
+	  }
+	},
     "/api/follow": {
       "post": {
         "description": "Follow a user",

@@ -10,7 +10,7 @@ const Feed = require('../models/feed-model');
 // render user newsfeed
 router.get('/home', async (req, res, next) => {
 	let error = null;
-		
+	
 	// check if user has a feed cached
 	let feed = null;
 	let posts = null;
@@ -89,7 +89,7 @@ router.get('/:profileId', async (req, res, next) => {
 	let posts = null;
 	await Post.find({ "user.id": profile._id })
 		.sort({ created: -1 })
-		.limit(10)
+		.limit(parseInt(process.env.SS_FEED_CACHE_LIMIT))
 		.then(ps => posts = ps)
 		.catch(err => error = err);
 

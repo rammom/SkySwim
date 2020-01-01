@@ -69,7 +69,69 @@ router.get('/users', async (req, res, next) => {
 	res.status(200).json({ users });
 });
 
+// Get paginated posts for user (fan out on read is slow, hopefully this won't happen much)
+router.get('/post/user', async (req, res, next) => {
+	const page = parseInt(req.query.page);
+	const user = req.query.user;
 
+	const error = null;
+
+	// validate request
+	if (!page || page < 1 || !user)
+		return next(Errors.ValidationError('invalid request'));
+
+	// find recent posts from user profile
+	let posts = null;
+	await Post.find({ "user.id": user })
+		.sort({ created: -1 })
+		.skip(parseInt(process.env.SS_FEED_CACHE_LIMIT) * (page - 1))		// offset to correct batch
+		.limit(parseInt(process.env.SS_FEED_CACHE_LIMIT))
+		.then(ps => posts = ps)
+		.catch(err => error = err);
+
+	if (error)
+		return next(error);
+
+	console.log(posts);
+
+	return res.status(200).json({posts});
+});
+
+// Get paginated posts for newsfeed (fan out on read is slow, hopefully this won't happen much)
+router.get('/post/feed', async (req, res, next) => {
+	const page = parseInt(req.query.page);
+	const error = null;
+
+	// validate request
+	if (!page || page < 1)
+		return next(Errors.ValidationError('invalid request'));
+
+	// find people the user is following
+	let followers = [];
+	await Follow.find({ follower: req.user })
+		.then(f => followers = f)
+		.catch(e => error = e);
+
+	if (error)
+		return next(error);
+
+	// map to followee ids and add user's id
+	followers = followers.map(f => f.user);
+	followers.push(req.user._id);
+
+	// find corresponding posts
+	await Post.find({ "user.id": { $in: followers } })
+		.sort({ created: -1 })
+		.skip(parseInt(process.env.SS_FEED_CACHE_LIMIT)*(page-1))		// offset to correct batch
+		.limit(parseInt(process.env.SS_FEED_CACHE_LIMIT))
+		.then(p => posts = p)
+		.catch(e => error = e);
+
+	if (error)
+		return next(error)
+
+	return res.status(200).json({ posts });
+});
 
 // Creates a post
 router.post('/post', async (req, res, next) => {
@@ -120,8 +182,6 @@ router.post('/post', async (req, res, next) => {
 
 	return res.status(200).json(newPost);
 });
-
-
 
 // Follow a user
 router.post('/follow', async (req, res, next) => {

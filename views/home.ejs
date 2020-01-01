@@ -70,13 +70,15 @@
 
 <script>
 	$(document).ready(function() {
+		let page = 2;
+
 		$("#search-bar").on('input',function() {
 			$('.options').html("")
 			const searchText = $("#search-bar").val();
 			if (searchText == '') return;
 			$.ajax({
 				type: "get",
-				url: "/api/users?text="+searchText,
+				url: "/api/users?text="+searchText
 			})
 			.done(function(data) {
 				console.log(data);
@@ -87,6 +89,40 @@
 			.fail(function(err) {
 				alert('server error!'+err)
 			});
+		});
+
+		let working = false;
+		$("body").scroll(function () {
+			if ($("body").scrollTop() >= $(document).height() - $("body").height() ) {
+				if (!working){
+					working = true;
+					$.ajax({
+						type: "get",
+						url: "/api/post/feed?page=" + page
+					})
+					.done(function (data) {
+						for (let i = 0; i < data.posts.length; i++){
+							let post = data.posts[i];
+							let html = "";
+							if (post.type = 'blurb') {
+								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6></div><p class='card-text'></p></div></div>"
+							}
+							else if (post.type = 'image') {
+								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><img src='" + post.media + "' class='card-img-top' alt='img'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6></div><p class='card-text'></p></div></div>"
+							}
+							else if (post.type = 'video') {
+								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><video controls><source src='" + post.media + "'>Your browser does not support the video tag.</video><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6></div><p class='card-text'></p></div></div>"
+							}
+							$(".feed").append(html);
+						}
+						working = false;
+						page += 1;
+					})
+					.fail(function (err) {
+						alert("server error! " + err);
+					});
+				}
+			}
 		});
 	});
 </script>
