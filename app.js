@@ -16,6 +16,7 @@ const passportSetup = require('./services/passport-setup');
 const mongoose = require('mongoose');
 const { authCheck, antiAuthCheck } = require('./services/utilities');
 const Errors = require('./services/Errors');
+const morgan = require('morgan')
 
 
 // setup swagger
@@ -48,6 +49,7 @@ mongoose.set('useUnifiedTopology', true);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('./public'));
+app.use(morgan('tiny'));
 
 
 
