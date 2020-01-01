@@ -7,6 +7,7 @@ const Feed = require('../models/feed-model');
 const AWS = require('aws-sdk');
 const Errors = require('../services/Errors');
 
+// Get and AWS.S3 presigned PUT url, allowing you to upload directly to the s3 bucket
 router.get('/s3-signed-url', async (req, res, next) => {
 	const contentType = req.query.contentType.toLowerCase();
 
@@ -45,6 +46,7 @@ router.get('/s3-signed-url', async (req, res, next) => {
 
 
 
+//Get list of 10 users based on matching search terms
 router.get('/users', async (req, res, next) => {
 	const text = req.query.text;
 	let error = null;
@@ -69,6 +71,7 @@ router.get('/users', async (req, res, next) => {
 
 
 
+// Creates a post
 router.post('/post', async (req, res, next) => {
 	const type = req.body.type;
 	const blurb = req.body.blurb;
@@ -120,6 +123,7 @@ router.post('/post', async (req, res, next) => {
 
 
 
+// Follow a user
 router.post('/follow', async (req, res, next) => {
 	const user = req.body.user;
 	const follower = req.user._id;
@@ -161,7 +165,7 @@ router.post('/follow', async (req, res, next) => {
 });
 
 
-
+// Unfollow a user
 router.post('/unfollow', async (req, res, next) => {
 	const user = req.body.user;
 	const follower = req.user._id;

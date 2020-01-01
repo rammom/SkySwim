@@ -7,7 +7,7 @@ const Feed = require('../models/feed-model');
 
 // gets user's posts temporarily
 // TODO: make this get user's newsfeed
-// go to user newsfeed
+// render user newsfeed
 router.get('/home', async (req, res, next) => {
 	let error = null;
 		
