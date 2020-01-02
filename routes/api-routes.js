@@ -159,29 +159,92 @@ router.post('/post', async (req, res, next) => {
 			username: req.user.username,
 			picture: req.user.picture
 		}
-	}).save()
+	})
+		.save()
 		.then(p => newPost = p)
 		.catch(e => error = e);
-
-
-	// fan out to followers with cached feeds, don't await to not block
-	let feedLimit = parseInt(process.env.SS_FEED_CACHE_LIMIT)
-	Follow.find({ user: req.user._id })
-		.then(follows => {
-			// send out update for each follower
-			follows.forEach(relation => {
-				Feed.findOneAndUpdate({ user: relation.follower }, { $push: { posts: { $each: [newPost], $position: 0, $slice: feedLimit } }}).exec();
-			})
-		});
-	
-	// add to user's feed
-	await Feed.findOneAndUpdate({ user: req.user._id }, { $push: { posts: { $each: [newPost], $position: 0, $slice: feedLimit } } }).exec();
 
 	if (error)
 		return next(error);
 
+	let feedLimit = parseInt(process.env.SS_FEED_CACHE_LIMIT)
+
+	// add to user's feed
+	await Feed.findOneAndUpdate({ user: req.user._id }, { $push: { posts: { $each: [newPost], $position: 0, $slice: feedLimit } } }).exec();
+
+	// fan out to followers with cached feeds, don't await to not block
+	Follow.find({ user: req.user._id })
+		.then(follows => {
+			// send out update for each follower
+			follows.forEach(relation => {
+				// what happens if this fails?
+				// TODO: add job queue?
+				Feed.findOneAndUpdate({ user: relation.follower }, { $push: { posts: { $each: [newPost], $position: 0, $slice: feedLimit } }}).exec();
+			})
+		});
+
 	return res.status(200).json(newPost);
 });
+
+// Remove a post
+router.delete('/post', async (req, res, next) => {
+	const postId = req.body.post;
+	const error = null;
+
+	// validate request body
+	if (!postId)
+		return next(new Errors.ValidationError('invalid request'))
+
+	// check post belongs to user
+	let post = null
+	await Post.findOne({ _id: postId, "user.id": req.user._id })
+		.then(p => post = p)
+		.catch(e => error = e);
+	
+	if (error)
+		return next(error);
+	if (!post)
+		return next(new Errors.ValidationError('invalid request'))
+
+	// remove post
+	await post.remove()
+		.catch(e => error = e);
+	
+	if (error)
+		return next(error);
+
+	// update user's feed
+	Feed.findOneAndUpdate({ user: req.user._id }, { $pull: { posts: postId } }).exec();
+
+	// fan out to followers with cached feeds, don't await to not block
+	Follow.find({ user: req.user._id })
+		.then(follows => {
+			// send out update for each follower
+			follows.forEach(relation => {
+				// what happens if this fails?
+				// TODO: add job queue?
+				Feed.findOneAndUpdate({ user: relation.follower }, { $pull: { posts: postId } }).exec();
+			})
+		});
+
+	return res.status(200).json({});
+});
+
+// Invalidate user's feed
+router.delete('/feed', async (req, res, next) => {
+	let error = null;
+
+	// invalidate user's feed
+	await Feed.findOneAndDelete({ user: req.user._id })
+		.exec()
+		.catch(e => error = e);
+
+	console.log('done');
+	if (error)
+		return next(error);
+
+	return res.status(200).json({});
+})
 
 // Follow a user
 router.post('/follow', async (req, res, next) => {

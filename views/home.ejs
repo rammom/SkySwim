@@ -31,7 +31,12 @@
 			</div>
 		</div>
 		<div class="col-sm-12 col-md-6 col-lg-8 pr-5 pl-5 pt-3 timeline-section">
-			<h6 class="text-center">Timeline</h6>
+			<div>
+				<h6 class="text-center">
+					Timeline
+					<button class="btn btn-warning float-right" id="refresh-button"><i class="fas fa-sync"></i></button>
+				</h6>
+			</div>
 			<div class="feed mt-5 mb-5">
 				<% posts.forEach(function(post) { %>
 					<div class="card mb-3">
@@ -53,6 +58,8 @@
 							</div>
 							<div class="col col-sm-12 col-md-2">
 								<h6 class="text-right"><img src="<%= post.user.picture %>" alt="Avatar" class="avatar mr-3"></h6>
+								<br/>
+								<button class="btn btn-danger delete-post-button" value="<%=post._id%>">delete</button>
 							</div>
 							
 							<p class="card-text"></p>
@@ -71,6 +78,35 @@
 <script>
 	$(document).ready(function() {
 		let page = 2;
+
+		$('#refresh-button').on('click', function() {
+			$.ajax({
+				type: "DELETE",
+				url: "/api/feed"
+			})
+			.done(function(data) {
+				window.location.reload();
+			})
+			.fail(function(err) {
+				console.log(err);
+			})
+		})
+
+		$('.delete-post-button').on('click', function() {
+			$.ajax({
+				type: "DELETE",
+				url: "/api/post",
+				data: {
+					post: this.value
+				}
+			})
+			.done(function(data) {
+				window.location.reload();
+			})
+			.fail(function(err) {
+				console.log(err);
+			})
+		})
 
 		$("#search-bar").on('input',function() {
 			$('.options').html("")

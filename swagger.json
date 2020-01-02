@@ -176,47 +176,112 @@
 		}
 	},
     "/api/post": {
-      "post": {
-        "description": "Creates a post",
-        "tags": [
-          "/api"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "example": "image"
-                  },
-                  "blurb": {
-                    "type": "string",
-                    "example": "blurb"
-                  },
-                  "media": {
-                    "type": "string",
-                    "example": "https://fake.path.org/media"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Content posted"
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        }
-	  }
+		"post": {
+			"description": "Creates a post",
+			"tags": [
+				"/api"
+			],
+			"requestBody": {
+				"required": true,
+				"content": {
+				"application/json": {
+					"schema": {
+					"type": "object",
+					"properties": {
+						"type": {
+							"type": "string",
+							"example": "image"
+						},
+						"blurb": {
+							"type": "string",
+							"example": "blurb"
+						},
+						"media": {
+							"type": "string",
+							"example": "https://fake.path.org/media"
+						}
+					}
+					}
+				}
+				}
+			},
+			"responses": {
+				"200": {
+					"description": "Content posted"
+				},
+				"400": {
+					"description": "Invalid request"
+				},
+				"default": {
+					"description": "Unexpected error"
+				}
+			}
+		},
+		"delete": {
+			"description": "Remove a post",
+			"tags": [
+				"/api"
+			],
+			"requestBody": {
+				"required": true,
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"post": {
+									"type": "string",
+									"example": "h9f130h7f1hd0e1eh70ef3"
+								}
+							}
+						}
+					}
+				}
+			},
+			"responses": {
+				"200": {
+					"description": "Content posted"
+				},
+				"400": {
+					"description": "Invalid request"
+				},
+				"default": {
+					"description": "Unexpected error"
+				}
+			}
+		}
+	},
+	"/api/feed": {
+		"delete": {
+			"description": "Invalidate a user's feed",
+			"tags": [
+				"/api"
+			],
+			"requestBody": {
+				"required": true,
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+
+							}
+						}
+					}
+				}
+			},
+			"responses": {
+				"200": {
+					"description": "Feed invalidated"
+				},
+				"400": {
+					"description": "Invalid request"
+				},
+				"default": {
+					"description": "Unexpected error"
+				}
+			}
+		}
 	},
     "/api/follow": {
       "post": {

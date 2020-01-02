@@ -21,6 +21,7 @@ postSchema.pre('save', function() {
 
 // make search by user quick and set created to -1 to sort by newest
 postSchema.index({ "user.id": 1, created: -1 });
+postSchema.index({ _id: 1, "user.id": 1 });
 
 const Post = mongoose.model('post', postSchema);
 
