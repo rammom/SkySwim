@@ -43,7 +43,10 @@
 							</blockquote>
 						</div>
 						<div class="col col-sm-12 col-md-2">
-							<h6 class="text-right"><img src="<%= profile.picture %>" alt="Avatar" class="avatar mr-3"></h6>
+							<div class="col col-sm-12 col-md-2">
+								<h6 class="text-right"><img src="<%= post.user.picture %>" alt="Avatar" class="avatar mr-3"></h6>
+								<br /><button class="btn btn-danger delete-post-button" value="<%=post._id%>">delete</button>
+							</div>
 						</div>
 			
 						<p class="card-text"></p>
@@ -90,6 +93,24 @@
 <script>
 
 $(document).ready(function() {
+
+	// delete post
+	$(document).on('click', '.delete-post-button', function () {
+		console.log('deleting');
+		$.ajax({
+			type: "DELETE",
+			url: "/api/post",
+			data: {
+				post: this.value
+			}
+		})
+			.done(function (data) {
+				window.location.reload();
+			})
+			.fail(function (err) {
+				console.log(err);
+			})
+	})
 
 	// follow
 	$("#follow-button").on('click', function() {
@@ -146,15 +167,16 @@ $(document).ready(function() {
 						console.log(data);
 						for (let i = 0; i < data.posts.length; i++) {
 							let post = data.posts[i];
+							console.log(post._id)
 							let html = "";
 							if (post.type = 'blurb') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6></div><p class='card-text'></p></div></div>"
+								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "</p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='" + post._id + "'>delete</button></div></div><p class='card-text'></p></div></div>"
 							}
 							else if (post.type = 'image') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><img src='" + post.media + "' class='card-img-top' alt='img'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6></div><p class='card-text'></p></div></div>"
+								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><img src='" + post.media + "' class='card-img-top' alt='img'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "</p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='" + post._id + "'>delete</button></div></div><p class='card-text'></p></div></div>"
 							}
 							else if (post.type = 'video') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><video controls><source src='" + post.media + "'>Your browser does not support the video tag.</video><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6></div><p class='card-text'></p></div></div>"
+								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><video controls><source src='" + post.media + "'>Your browser does not support the video tag.</video><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "</p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='" + post._id + "'>delete</button></div></div><p class='card-text'></p></div></div>"
 							}
 							$(".feed").append(html);
 						}
