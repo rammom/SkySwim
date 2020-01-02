@@ -57,7 +57,7 @@ router.get('/users', async (req, res, next) => {
 
 	// search for matching users, slow
 	let users = null;
-	await User.find({ username: { $regex: text, $options: 'i' } })
+	await User.find({ username: { $regex: "^"+text, $options: 'i' } })
 		.select('_id username picture')
 		.limit(10)
 		.then(u => users = u)

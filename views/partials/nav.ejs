@@ -29,9 +29,16 @@
 <script>
 	$(document).ready(function() {
 
+		$('#search-bar').on('focus', function() {
+			$('#search-results').css('display', 'block');
+		})
+		$('#search-bar').on('focusout', function () {
+			$('#search-results').css('display', 'none');
+			console.log('out')
+		})
+
 		// on search
 		$('#search-bar').on('input', function() {
-			$('#search-results').html("");
 			let term = this.value;
 			if (term.replace(/\s/g, '')) {
 				$.ajax({
@@ -39,15 +46,16 @@
 					url: '/api/users?text='+term
 				})
 				.done(function(data) {
-					console.log(data);
-					data.users.forEach(function(user) {
+					$('#search-results').html("");
+					for (let i = 0; i < data.users.length; i++) {
+						let user = data.users[i];
 						let html = "<a href='/u/" + user._id + "' class='search-result'><div class='card'><div class='card-body'><div class='row'><div class='col col-3'><img src='" + user.picture + "' alt='Avatar' class='avatar mr-3'></div><div class='col col-9'><h6>" + user.username + "</h6></div></div></div></div></a>";
 						$('#search-results').append(html);
-					});
+					}
 				})
 				.fail(function(err) {
 					alert(err);
-				})
+				});
 			}
 		});
 
