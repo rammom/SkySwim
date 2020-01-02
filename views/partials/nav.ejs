@@ -1,27 +1,76 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light" >
-	<a class="navbar-brand" href="#">SkySwim</a>
-	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-		aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-		<span class="navbar-toggler-icon"></span>
-	</button>
+<ul class="ss-nav mr-5">
+	<li class="mt-5 mb-5">
+		<a class="hidden-link" href="/u/home">
+			<h2 class="title">SkySwim</h2>
+		</a>
+	</li>
+	<li class="mt-3 mb-3">
+		<a href="/u/home">
+			<button class="btn btn-outline-success ss-nav-link">
+				<i class="fas fa-igloo fa-lg mr-3"></i>Home
+			</button>
+		</a>
+	</li>
+	<li class="mt-3 mb-3">
+		<a href="/u/<%= user._id %>">
+			<button class="btn btn-outline-success ss-nav-link">
+				<i class="fas fa-user-tie fa-lg mr-3"></i> Profile
+			</button>
+		</a>
+	</li>
+	<li class="mt-5 mb-3">
+		<input id="search-bar" type="search" class="form-control" placeholder="search users..">
+		<div id="search-results">
 
-	<div class="collapse navbar-collapse" id="navbarSupportedContent">
-		<ul class="navbar-nav mr-auto">
-			<li class="nav-item active">
-				<a class="nav-link" href="/u/home">Home</a>
-			</li>
-			<li class="nav-item active">
-				<a class="nav-link" href="/u/<%= user._id %>">Profile</a>
-			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="/auth/logout">Logout</a>
-			</li>
-		</ul>
-		
-	</div>
-	
-	
-</nav>
+		</div>
+	</li>
+</ul>
 
+<script>
+	$(document).ready(function() {
 
+		// on search
+		$('#search-bar').on('input', function() {
+			$('#search-results').html("");
+			let term = this.value;
+			if (term.replace(/\s/g, '')) {
+				$.ajax({
+					type: 'GET',
+					url: '/api/users?text='+term
+				})
+				.done(function(data) {
+					console.log(data);
+					data.users.forEach(function(user) {
+						let html = "<a href='/u/" + user._id + "' class='search-result'><div class='card'><div class='card-body'><div class='row'><div class='col col-3'><img src='" + user.picture + "' alt='Avatar' class='avatar mr-3'></div><div class='col col-9'><h6>" + user.username + "</h6></div></div></div></div></a>";
+						$('#search-results').append(html);
+					});
+				})
+				.fail(function(err) {
+					alert(err);
+				})
+			}
+		});
 
+	});
+</script>
+
+<style>
+	.ss-nav > li {
+		width: 70%
+	}
+	.search-result {
+		width: 100%;
+	}
+	.title {
+		color: var(--green);
+	}
+	.ss-nav-link {
+		border: none;
+		font-size: 1.3em;
+	}
+	.ss-nav {
+		list-style-type: none;
+		width: 100%;
+		text-align: center;
+	}
+</style>

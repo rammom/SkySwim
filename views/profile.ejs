@@ -1,196 +1,102 @@
-<%- include('partials/nav') %>
-<%- include('partials/follower-modal') %>
+<%- include('partials/followers-modal') %>
 <%- include('partials/following-modal') %>
-
-<div class="container mt-4">
-	<div class="row">
-		<div class="col col-md-12 col-lg-3">
-			<input type="hidden" id="profileId" name="profileId" value="<%= profile._id %>">
-			<h6 class="text-center"><img src="<%= profile.picture %>" alt="Avatar" class="avatar-lg mr-3"></h6>
-			<h6 class="text-center"><%= profile.username %></h6>
-			<p class="follow-metrics text-center" data-toggle="modal" data-target="#follower-modal"><%= followers.length %> Followers</span>
-			<p class="follow-metrics text-center" data-toggle="modal" data-target="#following-modal"><%= followees.length %> Following</span>
-			<hr>
-			<% if (user._id.toString() != profile._id.toString()) { %>
-				<input type="hidden" id="profileId" name="profileId" value="<%= profile._id %>">
-				<% if (following) { %>
-					<h6 class="text-center"><button type="button" id="unfollow-button" class="btn btn-primary" style="width: 100%">Following</button></h6>
-				<% } else {%>
-					<h6 class="text-center"><button type="button" id="follow-button" class="btn btn-outline-primary" style="width: 100%">Follow +</button></h6>
-				<% } %>
-			<% } %>
-		</div>
-		<div class="col col-md-12 col-lg-9">
-			<h5 class="text-center">Recent Activity</h5>
-			<div class="feed mt-3 mb-5">
-				<!-- feed goes here, figure this out -->
-				<% posts.forEach(function(post) { %>
-				<div class="card mb-3">
-					<% if (post.type == 'image') { %>
-					<img src="<%= post.image %>" class="card-img-top" alt="img">
-					<% } %>
-					<% if (post.type == 'video') { %>
-					<video controls>
-						<source src="<%= post.video %>">
-						Your browser does not support the video tag.
-					</video>
-					<% } %>
-					<div class="card-body row">
-						<div class="col col-sm-12 col-md-10">
-							<blockquote class="blockquote card-text">
-								<p class="mb-0"><%= post.blurb %></p>
-								<footer class="blockquote-footer"><%= profile.username %></footer>
-							</blockquote>
+<div class="row page">
+	<div class="col col-xs-12 col-sm-12 col-md-3 col-lg-3 section">
+		<%- include('partials/nav') %>
+	</div>
+	<div class="col col-xs-12 col-sm-12 col-md-9 col-lg-6 section">
+		<!-- post box -->
+		<div class="user-field">
+			<div class="create-section">
+				<div class="pt-3 pl-3 pr-3 pb-3">
+					<div class="row">
+						<div class="col-4">
+							<img src="<%= profile.picture %>" alt="avatar" class="avatar-lg">
 						</div>
-						<div class="col col-sm-12 col-md-2">
-							<div class="col col-sm-12 col-md-2">
-								<h6 class="text-right"><img src="<%= post.user.picture %>" alt="Avatar" class="avatar mr-3"></h6>
-								<br /><button class="btn btn-danger delete-post-button" value="<%=post._id%>">delete</button>
+						<div class="col">
+							<div class="flex" style="height: 100%;">
+								<h3><%= profile.username %></h3>
+								<div class="mb-3">
+									<h6 id="followers-modal-toggle" class="follow-metrics text-center"><%= followers.length %> Followers</h6>
+									<h6 id="followees-modal-toggle" class="follow-metrics text-center"><%= followees.length %> Following</h6>
+								</div>
+								<% if (user._id.toString() != profile._id.toString()) { %>
+									<% if (following) { %>
+										<button id="unfollow-button" class="btn btn-success follow-button">Unfollow</button>
+									<% } else { %>
+										<button id="follow-button" class="btn btn-outline-success follow-button">Follow +</button>
+									<% } %>
+								<% } %>
 							</div>
 						</div>
-			
-						<p class="card-text"></p>
 					</div>
 				</div>
-				<% }); %>
-			</div>
-			<hr>
-			<div class="feed-end text-center font-weight-lighter mt-3">
-				<span>End of feed.</span>
 			</div>
 		</div>
+		<%- include('partials/feed') %>
 	</div>
 </div>
+<input type='hidden' id='profileId' value='<%= profile._id %>' />
+
+<script>
+	$(document).ready(function() {
+		const profileId = $('#profileId').val();
+
+		// show followers
+		$('#followers-modal-toggle').on('click', function() {
+			// toggle modal
+			$('#followers-modal').modal('toggle');
+		});
+
+		// show following
+		$('#followees-modal-toggle').on('click', function () {
+			// toggle modal
+			$('#followings-modal').modal('toggle');
+		});
+
+		// follow
+		$('#follow-button').on('click', function() {
+			$.ajax({
+				type: 'POST',
+				url: '/api/follow',
+				data: {
+					user: profileId
+				}
+			})
+			.done(function() {
+				window.location.reload();
+			})
+			.fail(function(err) {
+				alert(err);
+			})
+		});
+		// unfollow
+		$('#unfollow-button').on('click', function () {
+			$.ajax({
+				type: 'POST',
+				url: '/api/unfollow',
+				data: {
+					user: profileId
+				}
+			})
+			.done(function () {
+				window.location.reload();
+			})
+			.fail(function (err) {
+				alert(err);
+			})
+		});
+
+	});
+</script>
 
 <style>
 	.follow-metrics {
 		color: #4582EC;
 		font-size: 0.9em;
-		width: 100%;
-		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-		margin:0;
 		cursor: pointer;
 	}
-	.avatar-lg {
-		vertical-align: middle;
-		width: 90%;
-		border-radius: 50%;
-		max-width: 50vw;
-	}
-	video {
-		width: 100%    !important;
-		height: auto   !important;
-		max-height: 50vh !important;
-	}
-	.avatar {
-		vertical-align: middle;
-		width: 50px;
-		height: 50px;
-		border-radius: 50%;
+	.follow-button {
+		width: 75%;
 	}
 </style>
-
-<script>
-
-$(document).ready(function() {
-
-	// delete post
-	$(document).on('click', '.delete-post-button', function () {
-		console.log('deleting');
-		$.ajax({
-			type: "DELETE",
-			url: "/api/post",
-			data: {
-				post: this.value
-			}
-		})
-			.done(function (data) {
-				window.location.reload();
-			})
-			.fail(function (err) {
-				console.log(err);
-			})
-	})
-
-	// follow
-	$("#follow-button").on('click', function() {
-		console.log('following');
-		// follow user
-		const profileId = $('#profileId').val();
-		$.ajax({
-			type: "POST",
-			url: "/api/follow",
-			data: {
-				user: profileId
-			}
-		})
-		.done(function(data) {
-			window.location.reload();
-		})
-		.fail(function(data) {
-			alert('an error occured');
-		});
-	});
-
-	// unfollow
-	$("#unfollow-button").on('click', function () {
-		console.log('unfollowing');
-		// unfollow user
-		const profileId = $('#profileId').val();
-		$.ajax({
-			type: "POST",
-			url: '/api/unfollow',
-			data: {
-				user: profileId
-			}
-		})
-		.done(function (data) {
-			window.location.reload();
-		})
-		.fail(function (data) {
-			alert('an error occured');
-		});
-	});
-
-	let working = false;
-	let page = 2;
-	$("body").scroll(function () {
-		if ($("body").scrollTop() >= $(document).height() - $("body").height()) {
-			console.log('bottom');
-			if (!working) {
-				working = true;
-				$.ajax({
-					type: "get",
-					url: "/api/post/user?page="+page+"&user="+$('#profileId').val()
-				})
-					.done(function (data) {
-						console.log(data);
-						for (let i = 0; i < data.posts.length; i++) {
-							let post = data.posts[i];
-							console.log(post._id)
-							let html = "";
-							if (post.type = 'blurb') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "</p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='" + post._id + "'>delete</button></div></div><p class='card-text'></p></div></div>"
-							}
-							else if (post.type = 'image') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><img src='" + post.media + "' class='card-img-top' alt='img'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "</p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='" + post._id + "'>delete</button></div></div><p class='card-text'></p></div></div>"
-							}
-							else if (post.type = 'video') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><video controls><source src='" + post.media + "'>Your browser does not support the video tag.</video><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "</p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='" + post._id + "'>delete</button></div></div><p class='card-text'></p></div></div>"
-							}
-							$(".feed").append(html);
-						}
-
-						working = false;
-						page += 1;
-					})
-					.fail(function (err) {
-						alert("server error! " + err);
-					});
-			}
-		}
-	});
-
-});
-
-</script>

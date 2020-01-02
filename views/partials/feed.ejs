@@ -1,0 +1,61 @@
+<div class='flex'>
+	<div id='ss-feed' class='ss-feed'>
+		
+	</div>
+	<button id="load-posts-btn" class="btn btn-success mt-5 mb-5" style="width: 50%;">load more</button>
+	<small>End of feed.</small>
+</div>
+
+<script>
+	$(document).ready(function() {
+		const profileId = $('#profileId').val()
+		let page = 1;
+
+		// get posts
+		let getPosts = function (type, page, data='') {
+			$.ajax({
+				type: 'GET',
+				url: "/api/post/"+type+"?page="+page+"&user="+data 
+			})
+				.done(function (data) {
+					console.log(data.posts.length);
+					for (let i = 0; i < data.posts.length; i++) {
+						let post = data.posts[i];
+						let html = "<div class='card feed-item mt-5 mr-3 ml-3'>";
+						if (post.type == 'image')
+							html += "<img src='" + post.media + "' class='card-img-top feed-media' alt='image'>";
+						else if (post.type == 'video')
+							html += "<video class='feed-media' controls><source src='" + post.media + "'>video unavailable</video>";
+						html +=
+							"<div class='card-body row'>" +
+							"<div class='col col-10'>" +
+							"<blockquote class='blockquote card-text'>" +
+							"<p class='mb-0'>" + post.blurb + "</p>" +
+							"<footer class='blockquote-footer'>" + post.user.username + "</footer>" +
+							"</blockquote>" +
+							"</div>" +
+							"<div class='col col-2'>" +
+							"<h6 class='text-right'>" +
+							"<img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'>" +
+							"</h6>" +
+							"</div>" +
+							"</div>";
+						$('#ss-feed').append(html);
+					}
+
+				})
+		}
+		
+		const loadPosts = function() {
+			if (profileId != null) 
+				getPosts('user', page, profileId);
+			else 
+				getPosts('feed', page);
+			page += 1;
+		}
+		loadPosts();
+
+		// load more posts
+		$('#load-posts-btn').on('click', loadPosts);
+	})
+</script>

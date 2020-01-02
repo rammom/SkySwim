@@ -78,7 +78,7 @@ router.get('/post/user', async (req, res, next) => {
 
 	// validate request
 	if (!page || page < 1 || !user)
-		return next(Errors.ValidationError('invalid request'));
+		return next(new Errors.ValidationError('invalid request'));
 
 	// find recent posts from user profile
 	let posts = null;

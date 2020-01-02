@@ -1,25 +1,27 @@
-<div class="modal fade" id="follower-modal" data-backdrop="static" tabindex="-1" role="dialog"
+<div class="modal fade" id="followers-modal" data-backdrop="static" tabindex="-1" role="dialog"
 	aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-users fa-lg mr-2"></i>Followers</h5>
+				<h5 class="modal-title" id="exampleModalCenterTitle"><i class="fas fa-users fa-lg mr-2"></i>Followers
+				</h5>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
 			<div class="modal-body">
 				<% if (followers.length == 0) { %>
-					<span class="font-weight-lighter">No followers :(</span>
+				<span class="font-weight-lighter">No followers :(</span>
 				<% } %>
 				<% followers.forEach(function(follower){ %>
-					<a href="/u/<%= follower.follower._id %>" class='follower-link'>
-						<div class='card'>
-							<div class='card-body'>
-								<p class='card-text text-left'><img src='<%= follower.follower.picture %>' alt='Avatar' class='avatar mr-3'><%= follower.follower.username %></p>
-							</div>
+				<a href="/u/<%= follower.follower._id %>" class='follower-link'>
+					<div class='card'>
+						<div class='card-body'>
+							<p class='card-text text-left'><img src='<%= follower.follower.picture %>' alt='Avatar'
+									class='avatar mr-3'><%= follower.follower.username %></p>
 						</div>
-					</a>
+					</div>
+				</a>
 				<% }) %>
 			</div>
 			<!-- <div class="modal-footer">
@@ -31,9 +33,10 @@
 
 <style>
 	.follower-link {
-		text-decoration: none!important;
+		text-decoration: none !important;
 		color: black;
 	}
+
 	.avatar {
 		vertical-align: middle;
 		width: 50px;

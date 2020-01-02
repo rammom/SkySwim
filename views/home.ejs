@@ -1,210 +1,165 @@
-<%- include('partials/nav') %>
-<%- include('partials/video-modal')%>
-<%- include('partials/image-modal')%>
-<%- include('partials/blurb-modal')%>
-<div class="container">
-	<div class="row mt-5 md-5 font-weight-light">
-		<div class="col col-sm-0 col-md-3 col-lg-2"></div>
-		<div class="col col-sm-12 col-md-6 col-lg-8">
-			<h5 class="text-center">Hey <%= user.username %>, what's on your mind?</h5>
-			<h6 class="mb-3 text-center font-weight-normal">Why not publish something great.</h6>
-			<div class="pl-5 pr-5">
-				<div class="post-options row text-center">
-					<div class="col post-option" data-toggle="modal" data-target="#blurb-modal"><i
-							class="fas fa-comment-dots fa-2x"></i><br><small>blurb</small></div>
-					<div class="col post-option" data-toggle="modal" data-target="#image-modal"><i
-							class="fas fa-image fa-2x"></i><br><small>image</small></div>
-					<div class="col post-option" data-toggle="modal" data-target="#video-modal"><i
-							class="fas fa-video fa-2x"></i><br><small>video</small></div>
+<div class="row page">
+	<div class="col col-xs-12 col-sm-12 col-md-3 col-lg-3 section">
+		<%- include('partials/nav') %>
+	</div>
+	<div class="col col-xs-12 col-sm-12 col-md-9 col-lg-6 section">
+		<!-- post box -->
+		<div class="header-container">
+			<h4 class="header mt-5 ml-3 mb-2 font-weight-bold">Home</h4>
+		</div>
+		<div class="post-field">
+			<div class="create-section">
+				<div class="pt-3 pl-3 pr-3 pb-3">
+					<h6>Hi <%= user.username %>, what's on your mind?</h6>
+					<textarea id="ss_textarea" class="ss_textarea mb-2" name="blurb" placeholder="Type here.."></textarea>
+					<div id="file-preview"></div>
+					<input type="file" name="file" id="file-input" accept=".png,.jpg,.jpeg,.mov,.mp4,.ogg" style="display: none;">
+					<i class="fas fa-photo-video fa-2x mr-2 icon-link input-trigger"></i>
+					<button id="make-post-btn" class="btn btn-success float-right font-weight-bold" disabled>Post</button>
 				</div>
 			</div>
-			<hr>
 		</div>
-		<div class="col col-sm-0 col-md-3 col-lg-2"></div>
-	</div>
-	<div class="row mt-5 md-5 font-weight-light">
-		<div class="col-sm-12 col-md-6 col-lg-4 pt-3 explore-section" >
-			<h6>Find friends</h6>
-			<input class="form-control mr-sm-2" type="search" id="search-bar" placeholder="Search" aria-label="Search">
-			<div class="options">
-
-			</div>
-		</div>
-		<div class="col-sm-12 col-md-6 col-lg-8 pr-5 pl-5 pt-3 timeline-section">
-			<div>
-				<h6 class="text-center">
-					Timeline
-					<button class="btn btn-warning float-right" id="refresh-button"><i class="fas fa-sync"></i></button>
-				</h6>
-			</div>
-			<div class="feed mt-5 mb-5">
-				<% posts.forEach(function(post) { %>
-					<div class="card mb-3">
-						<% if (post.type == 'image') { %>
-							<img src="<%= post.media %>" class="card-img-top" alt="img">
-						<% } %>
-						<% if (post.type == 'video') { %>
-							<video controls>
-								<source src="<%= post.media %>">
-								Your browser does not support the video tag.
-							</video>
-						<% } %>
-						<div class="card-body row">
-							<div class="col col-sm-12 col-md-10">
-								<blockquote class="blockquote card-text">
-									<p class="mb-0"><%= post.blurb %></p>
-									<footer class="blockquote-footer"><%= post.user.username %></footer>
-								</blockquote>
-							</div>
-							<div class="col col-sm-12 col-md-2">
-								<h6 class="text-right"><img src="<%= post.user.picture %>" alt="Avatar" class="avatar mr-3"></h6>
-								<br/><button class="btn btn-danger delete-post-button" value="<%=post._id%>">delete</button>
-							</div>
-							
-							<p class="card-text"></p>
-						</div>
-					</div>
-				<% }); %>
-			</div>
-			<hr>
-			<div class="feed-end text-center font-weight-lighter mt-3">
-				<span>End of feed.</span>
-			</div>
-		</div>
+		
+		<%- include('partials/feed') %>
 	</div>
 </div>
 
 <script>
 	$(document).ready(function() {
-		let page = 2;
+		let type = 'blurb';
+		let blurb = '';
+		let file = null;
+		let file_type = '';
 
-		// invalidate feed
-		$('#refresh-button').on('click', function() {
-			$.ajax({
-				type: "DELETE",
-				url: "/api/feed"
-			})
-			.done(function(data) {
-				window.location.reload();
-			})
-			.fail(function(err) {
-				console.log(err);
-			})
-		})
+		// make post
+		$("#make-post-btn").on('click', function() {
+			$("#loader").css("visibility", "visible");
+			console.log('making post..');
+			if (file) {
+				// get signed s3 url
+				$.ajax({
+					type: 'GET',
+					url: `/api/s3-signed-url?contentType=${type}/${file_type}`
+				})
+				.done(function(data) {
+					const media = `https://${data.bucketName}.s3.amazonaws.com/${data.fileName}`;
+					
+					console.log();
 
-		// delete post
-		$(document).on('click', '.delete-post-button', function () {
-			console.log('deleting');
-			$.ajax({
-				type: "DELETE",
-				url: "/api/post",
-				data: {
-					post: this.value
-				}
-			})
-				.done(function (data) {
-					window.location.reload();
+					// upload file to aws
+					fetch(data.signedUrl, {
+						method: "PUT",
+						body: file,
+					})
+					.then(function () {
+						console.log('uploaded to s3');
+						// register post to db
+						$.ajax({
+							type: 'POST',
+							url: '/api/post',
+							data: {
+								type: type,
+								blurb: blurb,
+								media: media
+							}
+						})
+						.done(function() {
+							$("#loader").css("visibility", "hidden");
+							window.location.replace('/u/home');
+						})
+						.fail(function(err) {
+							alert(err);
+						})
+					})
+					.catch(function(err) {
+						alert(err);
+					})
 				})
 				.fail(function (err) {
-					console.log(err);
+					alert(err);
 				})
-		})
-
-		$("#search-bar").on('input',function() {
-			$('.options').html("")
-			const searchText = $("#search-bar").val();
-			if (searchText == '') return;
-			$.ajax({
-				type: "get",
-				url: "/api/users?text="+searchText
-			})
-			.done(function(data) {
-				console.log(data);
-				data.users.forEach(function(match){
-					$('.options').prepend($("<a href='/u/"+match._id+"' class='match-link'><div class='card'><div class='card-body'><p class='card-text text-left'><img src='" + match.picture +"' alt='Avatar' class='avatar mr-3'>"+match.username+"</p></div></div></a>"))
-				});
-			})
-			.fail(function(err) {
-				alert('server error!'+err)
-			});
-		});
-
-		let working = false;
-		$("body").scroll(function () {
-			if ($("body").scrollTop() >= $(document).height() - $("body").height() ) {
-				if (!working){
-					working = true;
-					$.ajax({
-						type: "get",
-						url: "/api/post/feed?page=" + page
-					})
-					.done(function (data) {
-						for (let i = 0; i < data.posts.length; i++){
-							let post = data.posts[i];
-							let html = "";
-							if (post.type = 'blurb') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='"+post._id+"'>delete</button></div></div><p class='card-text'></p></div></div>"
-							}
-							else if (post.type = 'image') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><img src='" + post.media + "' class='card-img-top' alt='img'><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='"+post._id+"'>delete</button></div></div><p class='card-text'></p></div></div>"
-							}
-							else if (post.type = 'video') {
-								html = "<div class='card mb-3'><div class='card-body row'><div class='col col-sm-12 col-md-10'><video controls><source src='" + post.media + "'>Your browser does not support the video tag.</video><blockquote class='blockquote card-text'><p class='mb-0'>" + post.blurb + "%></p><footer class='blockquote-footer'>" + post.user.username + "</footer></blockquote></div><div class='col col-sm-12 col-md-2'><div><h6 class='text-right'><img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'></h6><br/><button class='btn btn-danger delete-post-button' value='" + post._id +"'>delete</button></div></div><p class='card-text'></p></div></div>"
-							}
-							$(".feed").append(html);
-						}
-						working = false;
-						page += 1;
+			}
+			else {
+				$.ajax({
+					type: 'POST',
+					url: '/api/post',
+					data: {
+						type: type,
+						blurb: blurb
+					}
+				})
+					.done(function () {
+						$("#loader").css("visibility", "hidden");
+						console.log('post complete.')
+						window.location.replace('/u/home');
 					})
 					.fail(function (err) {
-						alert("server error! " + err);
-					});
-				}
+						alert(err);
+					})
 			}
 		});
+
+		// validate submit button
+		$('#ss_textarea').on('keyup', function() {
+			blurb = this.value;
+			if (!blurb) {
+				$('#make-post-btn').attr("disabled", true);
+			}
+			else {
+				$('#make-post-btn').attr("disabled", false);
+			}
+		});
+
+		// trigger file input
+		$('.input-trigger').on('click', function() {
+			$('#file-input').trigger('click');
+		})
+
+		// remove preview file
+		$(document).on('click', '#preview-file-remove', function() {
+			$('#preview-file').remove();
+			return;
+		});
+
+		// preview file on input change
+		$('#file-input').on('change', function(event) {
+			if (this.value == '') {
+				$('#preview-file').remove();
+				return;
+			}
+
+			file = this.files[0];
+			// check file size
+			if (file > 1000000 * 100) { 	// 100 MB
+				alert("File is too big!");
+				this.value = "";
+				return;
+			};
+
+			fr = new FileReader();
+			fr.onload = function() {
+				let image_types = ['png', 'jpg', 'jpeg'];
+				let video_types = ['mov', 'mp4', 'ogg'];
+				file_type = file.name.split('.').pop().toLowerCase();
+				if (image_types.includes(file_type)) {
+					type = 'image';
+					// preview image
+					$('#file-preview').append("<div id='preview-file'><img style='width: inherit;' src=" + fr.result + " alt='image' /><br><button class='btn btn-danger mb-4' id='preview-file-remove'>remove</button></div>")
+				}
+				else if (video_types.includes(file_type)) {
+					type = 'video';
+					// preview video
+					$('#file-preview').append("<div id='preview-file'><video style='width: inherit;' controls><source src="+ URL.createObjectURL(file) +">video unavailable</video><br><button class='btn btn-danger mb-4' id='preview-file-remove'>remove</button></div>")
+				}
+				else {
+					alert('invalid file type');
+					this.value = "";
+					return;
+				}
+			}
+			fr.readAsDataURL(file);
+
+		})
+
 	});
 </script>
-
-<style>
-	#search-bar {
-		width: 100%
-	}
-	.explore-section {
-		border-right: 1px solid rgba(0,0,0,0.1);
-	}
-	.match-link {
-		text-decoration: none!important;
-		color: black;
-	}
-	video {
- 		width: 100%    !important;
-  		height: auto   !important;
-		max-height: 50vh !important;
-	}
-	.avatar {
-		vertical-align: middle;
-		width: 50px;
-		height: 50px;
-		border-radius: 50%;
-	}
-	.post-options {
-		border: 1px solid grey;
-		border-radius: 5px;
-	}
-	.post-option {
-		border-right: 1px solid grey;
-		cursor: pointer;
-		padding: 0.5em 0em 0.5em 0em;
-	}
-	.post-option:last-child {
-		border-right: none;
-		border-radius: 5px;
-	}
-	.post-option:first-child {
-		border-top-left-radius: 5px;
-		border-bottom-left-radius: 5px;
-	}
-	.post-option:hover {
-		background-color: rgb(255, 249, 241);
-	}
-</style>
