@@ -26,8 +26,6 @@ app.use(helmet());
 
 // setup swagger
 const swaggerUi = require('swagger-ui-express');
-
-// Initialize swagger-jsdoc -> returns validated swagger spec in json format
 const swaggerSpec = require('./swagger.json');
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

@@ -9,7 +9,10 @@
 <script>
 	$(document).ready(function() {
 		const profileId = $('#profileId').val()
+		const userId = $('#userId').val()
 		let page = 1;
+
+		console.log('userid: '+userId);
 
 		// get posts
 		let getPosts = function (type, page, data='') {
@@ -21,6 +24,7 @@
 					console.log(data.posts.length);
 					for (let i = 0; i < data.posts.length; i++) {
 						let post = data.posts[i];
+						console.log(post.user.id)
 						let html = "<div class='card feed-item mt-5 mr-3 ml-3'>";
 						if (post.type == 'image')
 							html += "<img src='" + post.media + "' class='card-img-top feed-media' alt='image'>";
@@ -28,15 +32,18 @@
 							html += "<video class='feed-media' controls><source src='" + post.media + "'>video unavailable</video>";
 						html +=
 							"<div class='card-body row'>" +
-							"<div class='col col-10'>" +
+							"<div class='col'>" +
 							"<blockquote class='blockquote card-text'>" +
 							"<p class='mb-0'>" + post.blurb + "</p>" +
 							"<footer class='blockquote-footer'>" + post.user.username + "</footer>" +
 							"</blockquote>" +
 							"</div>" +
-							"<div class='col col-2'>" +
+							"<div class='col'>" +
 							"<h6 class='text-right'>" +
-							"<img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'>" +
+							"<img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'>";
+						if (post.user.id == userId)
+							html += "<button class='delete-post' value='"+post._id+"'><i class='far fa-trash-alt' style='cursor: pointer;'></i></button>";
+						html += 
 							"</h6>" +
 							"</div>" +
 							"</div>";
@@ -45,7 +52,23 @@
 
 				})
 		}
-		
+
+		$(document).on('click', '.delete-post', function() {
+			$.ajax({
+				type: "DELETE",
+				url: "/api/post",
+				data: {
+					post: this.value
+				}
+			})
+			.done(function(data) {
+				window.location.reload();
+			})
+			.fail(function(err) {
+				alert(err.responseJSON.message);
+			});
+		})
+
 		const loadPosts = function() {
 			if (profileId != null) 
 				getPosts('user', page, profileId);
@@ -59,3 +82,9 @@
 		$('#load-posts-btn').on('click', loadPosts);
 	})
 </script>
+
+<style>
+	.delete-post {
+		border: 0;
+	}
+</style>
