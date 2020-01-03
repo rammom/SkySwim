@@ -10,6 +10,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser((id, done) => {
 	User.findById(id)
+		.select('_id username picture')		// hide oauth ids
 		.then(user => {
 			if (!user) 
 				return done(new Errors.UserError("passport: user not found"));

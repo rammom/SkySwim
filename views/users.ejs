@@ -1,0 +1,29 @@
+<div class="row page">
+	<div class="col col-xs-12 col-sm-12 col-md-3 col-lg-3 section">
+		<%- include('partials/nav') %>
+	</div>
+	<div class="col col-xs-12 col-sm-12 col-md-9 col-lg-6 section">
+		<!-- post box -->
+		<div class="header-container">
+			<h4 class="header mt-5 ml-3 mb-2 font-weight-bold">Users</h4>
+		</div>
+
+		<% users.forEach(function(user){ %>
+			<a href='/u/<%= user._id %>'>
+				<div class='card'>
+					<div class='card-body'>
+						<div class='row'>
+							<div class='col'>
+								<img src='<%= user.picture %>' alt='Avatar' class='avatar mr-3'>
+							</div>
+							<div class='col'>
+								<h6> <%= user.username %></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+			</a>
+		<% }); %>
+	</div>
+</div>
+<input type='hidden' id='userId' value='<%= user._id %>' />

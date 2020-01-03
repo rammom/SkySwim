@@ -69,6 +69,21 @@ router.get('/home', async (req, res, next) => {
 	return res.render('home', { user: req.user, posts: posts });
 });
 
+router.get('/users', async (req, res, next) => {
+	let error = null;
+	let users = null;
+
+	// get all users
+	await User.find()
+		.then(u => users = u)
+		.catch(e => error = e);
+
+	if (error)
+		return next(error);
+
+	res.render('users', { user: req.user, users: users })
+});
+
 // render user profile
 router.get('/:profileId', async (req, res, next) => {
 	let error = null;
@@ -134,6 +149,6 @@ router.get('/:profileId', async (req, res, next) => {
 		followers,
 		followees
 	});
-})
+});
 
 module.exports = router;
