@@ -6,6 +6,7 @@ const Follow = require('../models/follow-model');
 const Feed = require('../models/feed-model');
 const AWS = require('aws-sdk');
 const Errors = require('../services/Errors');
+const safe = require('safe-regex');
 
 // Get and AWS.S3 presigned PUT url, allowing you to upload directly to the s3 bucket
 router.get('/s3-signed-url', async (req, res, next) => {
@@ -52,7 +53,7 @@ router.get('/users', async (req, res, next) => {
 	let error = null;
 
 	// validate request
-	if (!text)
+	if (!text || !safe(text))
 		return next(new Errors.ValidationError('invalid request'));
 
 	// search for matching users, slow

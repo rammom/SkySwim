@@ -17,7 +17,12 @@ const mongoose = require('mongoose');
 const { authCheck, antiAuthCheck } = require('./services/utilities');
 const Errors = require('./services/Errors');
 const morgan = require('morgan')
+const rateLimit = require("express-rate-limit");
+const helmet = require('helmet');
 
+
+// secure HTTP headers
+app.use(helmet());
 
 // setup swagger
 const swaggerUi = require('swagger-ui-express');
@@ -52,6 +57,17 @@ app.use(express.static('./public'));
 app.use(morgan('tiny'));
 
 
+// setup rate limiters
+// 100 requests every 10 minutes from same IP
+const apiRateLimiter = rateLimit({
+	windowMs: 10 * 60 * 1000, // 10 minutes
+	max: 100
+});
+// 100 requests a day from same IP
+const authRateLimiter = rateLimit({
+	windowMs: 24 * 60 * 60 * 1000,
+	max: 100
+});
 
 
 // session and passport initialization
@@ -76,8 +92,8 @@ app.use(expressLayouts);
 
 
 // setup routes
-app.use('/api', authCheck, routes.api);
-app.use('/auth', routes.auth);
+app.use('/api', apiRateLimiter, authCheck, routes.api);
+app.use('/auth', authRateLimiter, routes.auth);
 app.use('/u', authCheck, routes.user);
 app.use('/', antiAuthCheck, routes.index);
 
