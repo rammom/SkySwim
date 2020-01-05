@@ -26,6 +26,9 @@ const userSchema = new Schema({
 	googleId: String,
 	facebookId: String
 });
+userSchema.index({ username: 1 });
+userSchema.index({ googleId: 1 });
+userSchema.index({ facebookId: 1 });
 ```
 
 ```javascript
