@@ -21,7 +21,6 @@
 				url: "/api/post/"+type+"?page="+page+"&user="+data 
 			})
 				.done(function (data) {
-					console.log(data.posts.length);
 					for (let i = 0; i < data.posts.length; i++) {
 						let post = data.posts[i];
 						console.log(post.user.id)
