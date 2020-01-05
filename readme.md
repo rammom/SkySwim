@@ -18,7 +18,7 @@ _On Building SkySwim is still a work in progress, but here is what I have so far
 Before building this app I knew that the primary goal was to refine and put together everything I've learned about Node.js and general app development over the last year. As much as I'd love it to, I don't expect SkySwim to have a large active user base; nevertheless, I still wanted to go about development as if it would.
 
 ### Thinking about the database
-_First problem: SQL or NoSQL?_ After a good deal of research, I've chosen to go with MongoDB, a NoSQL document based database. MongoDB, being a NoSQL database, offers multiple advantages including it's ability to [scale horizontally](https://github.com/vaquarkhan/vaquarkhan/wiki/Difference-between-scaling-horizontally-and-vertically) by [sharding](https://docs.mongodb.com/manual/sharding/) it's data, which would prove useful in social media type applications because of their intrinsic need to quickly scale. On top of this, the json-like structure of it's data mixes well with Node.js.
+_First problem: SQL or NoSQL?_ After a good deal of research, I've chosen to go with MongoDB, a NoSQL document based database. MongoDB, being a NoSQL database, offers multiple advantages including its ability to [scale horizontally](https://github.com/vaquarkhan/vaquarkhan/wiki/Difference-between-scaling-horizontally-and-vertically) by [sharding](https://docs.mongodb.com/manual/sharding/) it's data, which would prove useful in social media type applications because of their intrinsic need to quickly scale. On top of this, the json-like structure of it's data mixes well with Node.js.
 
 Moving on, how should the data be structured? Naturally there would need to be a collection of Users and Posts, a user would log into their account (via google or facebook) to make a post which would be stored with a reference to the user. Here's how this looks: 
 
@@ -52,7 +52,7 @@ postSchema.index({ _id: 1, "user.id": 1 });
 
 _Side note: You may be wondering why I'm storing the user as an embedded document in post. This is because on the frontend I display the user's name and picture along with the post. When gathering posts to be displayed I don't want to have to fetch the user object with each post, that would just take more time._
 
-Okay, so now with this a user can make a post. But just making posts isn't very social; users need to be able to follow each other! My intuitive thought on how to tackle follows was to add more fields to the user schema called `following` and `followers` being lists of user ids. This would work fine, until it doesn't. Since I'm building SkySwim as if it were going to be the new [Twitter](https://twitter.com), I have to think of scalability as if I were Twitter. At the moment [Justin Beiber](https://twitter.com/justinbieber) has over 107 million followers on Twitter, if Twitter kept their data as described above, Justin's user object would need to store 107 million user ids. A MongoDB ObjectId type (which is what we would be using to reference users) is 12 bytes long, lets do the math: `(107 million ids) * (12 bytes per id) = 1284 million bytes = 1.284 gigabytes`. Twitter would have to retrieve more than 1.284 gigabytes of data everytime they get Justin's user from the database. They've either got some crazy hardware, or there's a better way.
+Okay, so now with this a user can make a post. But just making posts isn't very social; users need to be able to follow each other! My intuitive thought on how to tackle follows was to add more fields to the user schema called `following` and `followers` being lists of user ids. This would work fine, until it doesn't. Since I'm building SkySwim as if it were going to be the new [Twitter](https://twitter.com), I have to think of scalability as if I were Twitter. At the moment [Justin Beiber](https://twitter.com/justinbieber) has over 107 million followers on Twitter, if Twitter kept their data as described above, Justin's user object would need to store 107 million user ids. A MongoDB ObjectId type (which is what we would be using to reference users) is 12 bytes long, lets do the math: `(107 million ids) * (12 bytes per id) = 1284 million bytes = 1.284 gigabytes`. Twitter would have to retrieve more than 1.284 gigabytes of data every time they get Justin's user from the database. They've either got some crazy hardware, or there's a better way.
 
 After some research, it turns out there is a better way. We keep a relationship style `Follow` collection, turbocharged by [MongoDB Indexes](https://docs.mongodb.com/manual/indexes/):
 ```javascript
@@ -97,7 +97,7 @@ db.follow.find({"user": "5e0bbf9ea11f6b54d68b70e9"})
 
 #### Fan out on write
 
-When this technique is used on it's own, read times are significantly improved but write times take a big hit. In this case, when a user X makes a post, SkySwim will create copy of the post for each of X's follower's (lots of redundant data). Here, creating a user's newsfeed is equivalent to finding all of their posts.
+When this technique is used on it's own, read times are significantly improved but write times take a big hit. In this case, when a user X makes a post, SkySwim will create a copy of the post for each of X's follower's (lots of redundant data). Here, creating a user's newsfeed is equivalent to finding all of their posts.
 
 ```javascript
 db.post.find({"recipient": "5e0bbf9ea11f6b54d68b70e9"});
@@ -133,7 +133,7 @@ Follow.find({ user: "5e0bbf9ea11f6b54d68b70e9" })
 
 Now all is pretty. All but one thing: why is this any better than just doing a [fan out on write](#fan-out-on-write)? Then answer: it's not. Not yet.
 
-In large scale social media applications, it turns out there are a lot of `inactive users`. These are users who don't actively check their feeds, and thus don't need their feeds to updated. Why waste the time it takes to update their feeds if they're not going to need it? This problem is taken care of by adding a [time to live (TTL) index](https://docs.mongodb.com/manual/core/index-ttl/) to the cached feeds. If a user hasn't viewed their feed for a specified amount of time, the cache gets deleted and if the user has no cache, whoever they're following doesn't need to update them on every write. Therefore, when a user creates a post, they only need to fan out to a fraction of they're followers! Exciting!
+In large scale social media applications, it turns out there are a lot of `inactive users`. These are users who don't actively check their feeds, and thus don't need their feeds to updated. Why waste the time it takes to update their feeds if they're not going to need it? This problem is taken care of by adding a [time to live (TTL) index](https://docs.mongodb.com/manual/core/index-ttl/) to the cached feeds. If a user hasn't viewed their feed for a specified amount of time, the cache gets deleted and if the user has no cache, whoever they're following doesn't need to update them on every write. Therefore, when a user creates a post, they only need to fan out to a fraction of their followers! Exciting!
 
 ## Results
 
