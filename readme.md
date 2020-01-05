@@ -40,6 +40,8 @@ const postSchema = new Schema({
 	},
 	created: { type: Date }
 });
+postSchema.index({ "user.id": 1, created: -1 });
+postSchema.index({ _id: 1, "user.id": 1 });
 ```
 
 _Side note: You may be wondering why I'm storing the user as an embedded document in post. This is because on the frontend I display the user's name and picture along with the post. When gathering posts to be displayed I don't want to have to fetch the user object with each post, that would just take more time._
@@ -62,6 +64,8 @@ db.follow.find({"user": "5e0bbf9ea11f6b54d68b70e9"});
 // find user's followees
 db.follow.find({"follower": "5e0bbf9ea11f6b54d68b70e9"});
 ```
+
+_Note: The users posts are also referenced in a similar fashion_
 
 SkySwim uses one more collection, however it'll be introduced in the next section.
 
