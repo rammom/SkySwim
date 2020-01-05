@@ -70,5 +70,5 @@ db.follow.find({"follower": "5e0bbf9ea11f6b54d68b70e9"});
 
 _Note: The users posts are also referenced in a similar fashion_
 
-SkySwim uses one more collection, however it'll be introduced in the next section.
+SkySwim uses one more collection, it'll be introduced in the next section.
 
