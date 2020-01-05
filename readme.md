@@ -11,6 +11,7 @@ Try it out by visiting [the demo hosted on my portfolio](https://skyswim.mrammo.
 _On Building SkySwim is still a work in progress, but here is what I have so far._
 
 * [Thinking about the database](#thinking-about-the-database)
+* [Next up, Newsfeed](#next-up,-newsfeed)
 
 Before building this app I knew that the primary goal was to refine and put together everything I've learned about Node.js and general app development over the last year. As much as I'd love it to, I don't expect SkySwim to have a large active user base; nevertheless, I still wanted to go about development as if it would.
 
@@ -71,4 +72,70 @@ db.follow.find({"follower": "5e0bbf9ea11f6b54d68b70e9"});
 _Note: The users posts are also referenced in a similar fashion_
 
 SkySwim uses one more collection, it'll be introduced in the next section.
+
+
+### Next up, Newsfeed
+
+In all honesty, this part of planning was the most intimidating. How do modern day social media applications build a user's newsfeed so efficiently? I've decided to take up this challenge. Modern day Twitter and Instagram use a mix of what is called ranked and chronological feeds. Ranked feeds having a post order that is based on user preferences and cronological feeds being solely time based. Due to lack of user data, I was forced to stick with a chronologial feed for SkySwim.
+
+The problem still presents itself, how can I create a feed that contains the latest tweets from whoever you're following, without long wait times? 
+
+The quick answer: caching. 
+The long answer: fan out on read + fan out on write + caching.
+
+#### Fan out on read
+
+When this techneque is used on it's own, it's the slowest of them all. In this case, when a user X visits the newsfeed, SkySwim would need to find everyone X is following then for each of those user's, find their posts and finally limit all of the resulting posts to the max feed number.
+
+```javascript
+let followers = [];
+db.follow.find({"user": "5e0bbf9ea11f6b54d68b70e9"})
+    .forEach(doc => followers.push(doc.follower));
+```
+
+#### Fan out on write
+
+When this techneque is used on it's own, read times are significantly improved but write times take a big hit. In this case, when a user X makes a post, SkySwim will create copy of the post for each of X's follower's (lots of redundant data). Here, creating a user's newsfeed is equivalent to finding all of their posts.
+
+```javascript
+db.post.find({"recipient": "5e0bbf9ea11f6b54d68b70e9"});
+```
+
+#### Cached feeds
+
+When all hope is lost, here comes feed caching to save to day! In this most optimal scenario, a user would only have to [fan out on read](#fan-out-on-read) once. After this fan out, we cache the posts retrieved into a Feed collection, to be read on further requests:
+
+```javascript
+const feedSchema = new Schema({
+	user: { type: String, required: true, unique: true },
+	posts: [{ type: ObjectId, ref: 'post', required: true }],
+	updated: Date
+});
+feedSchema.index({ user: 1, updated: -1 });
+feedSchema.index({ updated: 1 }, { expireAfterSeconds: (60 * 60 * 24 * 30) })
+```
+
+Now we need to update this cached feed everytime one of the people our user is following makes a post, this is where the [fan out on write](#fan-out-on-write) comes into play. Once a user makes a post, they needs to update the cached feeds of all their followers so that they can see the user's post. We then place a cap on the number of posts stored in a cache and only keep the latest posts:
+
+```javascript
+Follow.find({ user: "5e0bbf9ea11f6b54d68b70e9" })
+		.then(follows => {
+			// send out update for each follower
+			follows.forEach(relation => {
+				Feed.findOneAndUpdate(
+				    { user: relation.follower }, 
+				    { $push: { posts: { $each: [newPost], $position: 0, $slice: feedLimit } }} ).exec();
+			})
+		});
+```
+
+Now all is pretty. All but one thing: why is this any better than just doing a [fan out on write](#fan-out-on-write)? Then answer: it's not. Not yet.
+
+In large scale social media applications, it turns out there are a lot of `inactive users`. These are users who don't actively check their feeds, and thus don't need their feeds to updated. Why waste the time it takes to update their feeds if they're not going to need it? This problem is taken care of by adding a [time to live (TTL) index](https://docs.mongodb.com/manual/core/index-ttl/) to the cached feeds. If a user hasn't viewed their feed for a specified amount of time, the cache gets deleted and if the user has no cache, whoever they're following doesn't need to update them on every write. Therefore, when a user creates a post, they only need to fan out to a fraction of they're followers! Exciting!
+
+## Results
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=AaeUz1e_dBk
+" target="_blank"><img src="http://img.youtube.com/vi/AaeUz1e_dBk/0.jpg" 
+alt="video demo" width="240" height="180" border="10" /></a>
 
