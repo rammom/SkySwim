@@ -1,3 +1,5 @@
+![Banner image](./skyswim-banner.png)
+
 # SkySwim Social
 
 Utilized conventional software engineering methodologies in order to mimic a modern day social media web app. 
@@ -8,3 +10,6 @@ Try it out by visiting [the demo hosted on my portfolio](https://skyswim.mrammo.
 ### On Building SkySwim
 
 This section is currently a work in progress, it will be updated soon!
+
+
+
