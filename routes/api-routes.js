@@ -4,44 +4,35 @@ const Post = require('../models/post-model');
 const User = require('../models/user-model');
 const Follow = require('../models/follow-model');
 const Feed = require('../models/feed-model');
-const AWS = require('aws-sdk');
+const s3 = require('../services/s3-setup');
 const Errors = require('../services/Errors');
 const safe = require('safe-regex');
 
 // Get and AWS.S3 presigned PUT url, allowing you to upload directly to the s3 bucket
 router.get('/s3-signed-url', async (req, res, next) => {
 	const contentType = req.query.contentType.toLowerCase();
+	let error = null;
 
 	// validate request body
 	if (!contentType || !(contentType.startsWith("image/") || contentType.startsWith("video/")))
-		return next(new Errors.ValidationError("invalid content-type"));
+		return next(new Errors.ValidationError("invalid request"));
 
-	// configure AWS.S3 
 	const fileName = Date.now().toString() + '.' + contentType.split('/').pop();
-	const params = {
-		Bucket: process.env.SS_AWS_BUCKET,
-		// Expires: 30 * 60, // 30 minutes
-		Key: fileName,
-		ContentType: contentType,
-	};
-	const options = {
-		accessKeyId: process.env.SS_AWS_ID,
-		secretAccessKey: process.env.SS_AWS_SECRET,
-		signatureVersion: 'v4'
-	};
-	const s3 = new AWS.S3(options);
+	
+	let url = null;
+	await s3.getSignedUrl(fileName, contentType)
+		.then(u => url = u)
+		.catch(e => error = e);
+	
+	if (error)
+		return next(error);
 
-	// request signed url from s3
-	s3.getSignedUrl('putObject', params, (err, data) => {
-		if (err) next(err);
-
-		// return signed url to client for direct upload
-		res.status(200).json({
-			signedUrl: data,
-			bucketName: process.env.SS_AWS_BUCKET,
-			fileName: fileName
-		})
-	});
+	// return signed url to client for direct upload
+	res.status(200).json({
+		signedUrl: url,
+		bucketName: process.env.SS_AWS_BUCKET,
+		fileName: fileName
+	})
 
 });
 
@@ -239,7 +230,7 @@ router.post('/post', async (req, res, next) => {
 // Remove a post
 router.delete('/post', async (req, res, next) => {
 	const postId = req.body.post;
-	const error = null;
+	let error = null;
 
 	// validate request body
 	if (!postId)
@@ -255,6 +246,17 @@ router.delete('/post', async (req, res, next) => {
 		return next(error);
 	if (!post)
 		return next(new Errors.ValidationError('invalid request'))
+
+	// remove any media uploaded by post
+	if (post.media) {
+		const fileName = post.media.split('/').pop();
+
+		await s3.deleteObject(fileName)
+			.catch(e => error = e);
+
+		if (error)
+			return next(error);
+	}
 
 	// remove post
 	await post.remove()
