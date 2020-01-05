@@ -7,6 +7,8 @@ Keep reading for more on what my thought process was while architecting the appl
 
 Try it out by visiting [the demo hosted on my portfolio](https://skyswim.mrammo.ca/), or watch [this YouTube video](https://www.youtube.com/watch?v=AaeUz1e_dBk) of me quickly overviewing it's functionality.
 
+View my medium article concerning SkySwim [here](https://medium.com/@mrammo/how-i-built-a-modern-day-social-media-application-with-node-js-part-1-120c11e9a97b?sk=3591d8b3db54f54de7a1704c2ef7c73b)
+
 ## On Building SkySwim
 _On Building SkySwim is still a work in progress, but here is what I have so far._
 
@@ -61,7 +63,7 @@ const followSchema = new Schema({
 followSchema.index({ user: 1, follower: 1});
 followSchema.index({ follower: 1, user: 1 });
 ```
-With this techneque, cherry picked from SQL development, the user doesn't need to keep track of who it's following or vice versa. This works so well because of the indexes placed on the schema, by keeping an index on both `user` and `follower` we can run a MongoDB query to find all of a user's followers or followees (through a collection of 21 million documents!) in less than 1ms.
+With this technique, cherry picked from SQL development, the user doesn't need to keep track of who it's following or vice versa. This works so well because of the indexes placed on the schema, by keeping an index on both `user` and `follower` we can run a MongoDB query to find all of a user's followers or followees (through a collection of 21 million documents!) in less than 1ms.
 ```javascript
 // find user's followers
 db.follow.find({"user": "5e0bbf9ea11f6b54d68b70e9"});
