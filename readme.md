@@ -7,14 +7,14 @@ Keep reading for more on what my thought process was while architecting the appl
 
 Try it out by visiting [the demo hosted on my portfolio](https://skyswim.mrammo.ca/), or watch [this YouTube video](https://www.youtube.com/watch?v=AaeUz1e_dBk) of me quickly overviewing it's functionality.
 
-### On Building SkySwim
+## On Building SkySwim
 _On Building SkySwim is still a work in progress, but here is what I have so far._
 
-* [Thinking about the database](#####Thinking-About-The-Database)
+* [Thinking about the database](#thinking-about-the-database)
 
 Before building this app I knew that the primary goal was to refine and put together everything I've learned about Node.js and general app development over the last year. As much as I'd love it to, I don't expect SkySwim to have a large active user base; nevertheless, I still wanted to go about development as if it would.
 
-##### Thinking about the database
+### Thinking about the database
 _First problem: SQL or NoSQL?_ After a good deal of research, I've chosen to go with MongoDB, a NoSQL document based database. MongoDB, being a NoSQL database, offers multiple advantages including it's ability to [scale horizontally](https://github.com/vaquarkhan/vaquarkhan/wiki/Difference-between-scaling-horizontally-and-vertically) by [sharding](https://docs.mongodb.com/manual/sharding/) it's data, which would prove useful in social media type applications because of their intrinsic need to quickly scale. On top of this, the json-like structure of it's data mixes well with Node.js.
 
 Moving on, how should the data be structured? Naturally there would need to be a collection of Users and Posts, a user would log into their account (via google or facebook) to make a post which would be stored with a reference to the user. Here's how this looks: 
