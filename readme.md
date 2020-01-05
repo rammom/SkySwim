@@ -78,7 +78,7 @@ SkySwim uses one more collection, it'll be introduced in the next section.
 
 ### Next up, Newsfeed
 
-In all honesty, this part of planning was the most intimidating. How do modern day social media applications build a user's newsfeed so efficiently? I've decided to take up this challenge. Modern day Twitter and Instagram use a mix of what is called ranked and chronological feeds. Ranked feeds having a post order that is based on user preferences and cronological feeds being solely time based. Due to lack of user data, I was forced to stick with a chronologial feed for SkySwim.
+In all honesty, this part of planning was the most intimidating. How do modern day social media applications build a user's newsfeed so efficiently? I've decided to take up this challenge. Modern day Twitter and Instagram use a mix of what is called ranked and chronological feeds. Ranked feeds having a post order that is based on user preferences and chronological feeds being solely time based. Due to lack of user data, I was forced to stick with a chronological feed for SkySwim.
 
 The problem still presents itself, how can I create a feed that contains the latest tweets from whoever you're following, without long wait times? 
 
@@ -87,7 +87,7 @@ The long answer: fan out on read + fan out on write + caching.
 
 #### Fan out on read
 
-When this techneque is used on it's own, it's the slowest of them all. In this case, when a user X visits the newsfeed, SkySwim would need to find everyone X is following then for each of those user's, find their posts and finally limit all of the resulting posts to the max feed number.
+When this technique is used on it's own, it's the slowest of them all. In this case, when a user X visits the newsfeed, SkySwim would need to find everyone X is following then for each of those user's, find their posts and finally limit all of the resulting posts to the max feed number.
 
 ```javascript
 let followers = [];
@@ -97,7 +97,7 @@ db.follow.find({"user": "5e0bbf9ea11f6b54d68b70e9"})
 
 #### Fan out on write
 
-When this techneque is used on it's own, read times are significantly improved but write times take a big hit. In this case, when a user X makes a post, SkySwim will create copy of the post for each of X's follower's (lots of redundant data). Here, creating a user's newsfeed is equivalent to finding all of their posts.
+When this technique is used on it's own, read times are significantly improved but write times take a big hit. In this case, when a user X makes a post, SkySwim will create copy of the post for each of X's follower's (lots of redundant data). Here, creating a user's newsfeed is equivalent to finding all of their posts.
 
 ```javascript
 db.post.find({"recipient": "5e0bbf9ea11f6b54d68b70e9"});
