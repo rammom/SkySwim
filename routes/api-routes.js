@@ -18,12 +18,12 @@ router.get('/s3-signed-url', async (req, res, next) => {
 		return next(new Errors.ValidationError("invalid request"));
 
 	const fileName = Date.now().toString() + '.' + contentType.split('/').pop();
-	
+
 	let url = null;
 	await s3.getSignedUrl(fileName, contentType)
 		.then(u => url = u)
 		.catch(e => error = e);
-	
+
 	if (error)
 		return next(error);
 
@@ -92,7 +92,7 @@ router.get('/post/feed', async (req, res, next) => {
 	const page = parseInt(req.query.page);
 	let error = null;
 	let posts = null;
-	
+
 	// validate request
 	if (!page || page < 1)
 	return next(Errors.ValidationError('invalid request'));
@@ -111,14 +111,14 @@ router.get('/post/feed', async (req, res, next) => {
 
 		// check length of user feed, if it is very short, invalidate it
 		// probably would need to better optimize this
-		if (feed.posts.length  < process.env.SS_FEED_CACHE_LIMIT / 3) {
+		if (feed && feed.posts.length  < process.env.SS_FEED_CACHE_LIMIT / 3) {
 			await feed.remove()
 				.catch(e => error = e);
 
 			// don't throw the error here in order to complete request
-			if (error) 
+			if (error)
 				console.log(error);
-			
+
 			feed = null;
 		};
 
@@ -241,7 +241,7 @@ router.delete('/post', async (req, res, next) => {
 	await Post.findOne({ _id: postId, "user.id": req.user._id })
 		.then(p => post = p)
 		.catch(e => error = e);
-	
+
 	if (error)
 		return next(error);
 	if (!post)
@@ -261,7 +261,7 @@ router.delete('/post', async (req, res, next) => {
 	// remove post
 	await post.remove()
 		.catch(e => error = e);
-	
+
 	if (error)
 		return next(error);
 

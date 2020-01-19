@@ -36,7 +36,7 @@ router.get('/:profileId', async (req, res, next) => {
 	await User.findById(req.params.profileId)
 		.then(p => profile = p)
 		.catch(err => error = err);
-	
+
 	// check if user exists, otherwise go home
 	if (!profile)
 		return res.redirect('/u/home');
@@ -46,9 +46,11 @@ router.get('/:profileId', async (req, res, next) => {
 	// check follow status between users, fast because of index
 	let following = false;
 	await Follow.findOne({ user: profile._id, follower: req.user._id })
-		.then(f => following = (f == null))
+		.then(f => following = (f != null))
 		.catch(e => error = e);
-	
+
+	console.log(following);
+
 	if (error)
 		return next(error);
 
@@ -72,10 +74,10 @@ router.get('/:profileId', async (req, res, next) => {
 	if (error)
 		return next(error);
 
-	res.render('profile', { 
-		user: req.user, 
+	res.render('profile', {
+		user: req.user,
 		profile,
-		following, 
+		following,
 		followers,
 		followees
 	});
