@@ -1,5 +1,5 @@
 
-// Check if user sending request is logged in
+// Middleware for authenticated users
 exports.authCheck = (req, res, next) => {
 	if (!req.user) {
 		// if user not logged in
@@ -11,7 +11,7 @@ exports.authCheck = (req, res, next) => {
 	}
 }
 
-// Check if user sending request is not logged in
+// Middleware for unauthenticated users
 exports.antiAuthCheck = (req, res, next) => {
 	if (req.user) {
 		// if user logged in
