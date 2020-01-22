@@ -1,6 +1,6 @@
 <div class='flex'>
 	<div id='ss-feed' class='ss-feed'>
-		
+
 	</div>
 	<button id="load-posts-btn" class="btn btn-success mt-5 mb-5" style="width: 50%;">load more</button>
 	<small>End of feed.</small>
@@ -18,7 +18,7 @@
 		let getPosts = function (type, page, data='') {
 			$.ajax({
 				type: 'GET',
-				url: "/api/post/"+type+"?page="+page+"&user="+data 
+				url: "/api/post/"+type+"?page="+page+"&user="+data
 			})
 				.done(function (data) {
 					for (let i = 0; i < data.posts.length; i++) {
@@ -42,7 +42,7 @@
 							"<img src='" + post.user.picture + "' alt='Avatar' class='avatar mr-3'>";
 						if (post.user.id == userId)
 							html += "<button class='delete-post' value='"+post._id+"'><i class='far fa-trash-alt' style='cursor: pointer;'></i></button>";
-						html += 
+						html +=
 							"</h6>" +
 							"</div>" +
 							"</div>";
@@ -57,7 +57,7 @@
 				type: "DELETE",
 				url: "/api/post",
 				data: {
-					post: this.value
+					postId: this.value
 				}
 			})
 			.done(function(data) {
@@ -69,9 +69,9 @@
 		})
 
 		const loadPosts = function() {
-			if (profileId != null) 
+			if (profileId != null)
 				getPosts('user', page, profileId);
-			else 
+			else
 				getPosts('feed', page);
 			page += 1;
 		}

@@ -19,7 +19,7 @@
 				</div>
 			</div>
 		</div>
-		
+
 		<%- include('partials/feed') %>
 	</div>
 </div>
@@ -44,7 +44,7 @@
 				})
 				.done(function(data) {
 					const media = `https://${data.bucketName}.s3.amazonaws.com/${data.fileName}`;
-					
+
 					console.log();
 
 					// upload file to aws

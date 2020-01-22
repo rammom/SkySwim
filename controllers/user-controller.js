@@ -55,15 +55,10 @@ exports.renderProfileByProfileId = async (req, res, next) => {
   }
 
 	// check follow status between users, fast because of index
-	let following = await Follow.findOne({ user: profile._id, follower: user._id })
+	let following = await Follow.findOne({user: profile._id, follower: user._id})
 		.catch(error_ => {
       error = error_;
-    })
-    .map(document => {
-      // true: following relation found
-      // false: following relation not found
-      return document != null;
-    });
+		}) != null;
 
 	if (error) {
 		return next(error);
