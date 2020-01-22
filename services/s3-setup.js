@@ -4,7 +4,7 @@ exports.getSignedUrl = (fileName, contentType) => {
 	const params = {
 		Bucket: process.env.SS_AWS_BUCKET,
 		Key: fileName,
-		ContentType: contentType,
+		ContentType: contentType
 	};
 	const options = {
 		accessKeyId: process.env.SS_AWS_ID,
@@ -14,14 +14,16 @@ exports.getSignedUrl = (fileName, contentType) => {
 	const s3 = new AWS.S3(options);
 	return new Promise((resolve, reject) => {
 		s3.getSignedUrl('putObject', params, (err, url) => {
-			if (err) 
+			if (err) {
 				return reject(err);
+			}
+
 			return resolve(url);
 		});
 	});
-}
+};
 
-exports.deleteObject = (fileName) => {
+exports.deleteObject = fileName => {
 	const params = {
 		Bucket: process.env.SS_AWS_BUCKET,
 		Key: fileName
@@ -34,9 +36,11 @@ exports.deleteObject = (fileName) => {
 	const s3 = new AWS.S3(options);
 	return new Promise((resolve, reject) => {
 		s3.deleteObject(params, (err, data) => {
-			if (err)
+			if (err) {
 				return reject(err);
+			}
+
 			return resolve(data);
-		})
+		});
 	});
-}
+};

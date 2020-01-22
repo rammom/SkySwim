@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/xo"
   },
   "author": "Mostapha Rammo",
   "license": "ISC",
@@ -27,5 +27,8 @@
     "safe-regex": "^2.1.1",
     "swagger-jsdoc": "^3.5.0",
     "swagger-ui-express": "^4.1.2"
+  },
+  "devDependencies": {
+    "xo": "^0.25.3"
   }
 }

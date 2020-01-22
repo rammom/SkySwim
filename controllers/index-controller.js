@@ -1,3 +1,3 @@
-exports.renderLanding = (req, res, next) => {
-  res.render("landing");
-}
+exports.renderLanding = (req, res, _) => {
+	res.render('landing');
+};

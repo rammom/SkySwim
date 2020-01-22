@@ -1,5 +1,5 @@
 const express = require('express');
-const router = express.Router();
+const router = new express.Router();
 const apiController = require('../controllers/api-controller');
 
 router.get('/s3-signed-url', apiController.askAWSForPresignedPutUrl);

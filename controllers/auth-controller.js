@@ -4,10 +4,10 @@ const passport = require('passport');
   /auth/Logout
   Logout current authenticated user
 */
-exports.logout = (req, res, next) => {
+exports.logout = (req, res, _) => {
 	req.logout();
 	res.redirect('/');
-}
+};
 
 /*
   /auth/google
@@ -24,6 +24,6 @@ exports.authenticateWithFacebook = passport.authenticate('facebook', {scope: ['e
 /*
   Redirect user to homepage
 */
-exports.redirectToHome = (req, res, next) => {
-  res.redirect('/u/home');
-}
+exports.redirectToHome = (req, res, _) => {
+	res.redirect('/u/home');
+};

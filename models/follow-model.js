@@ -1,18 +1,18 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const ObjectId = Schema.Types.ObjectId;
+const {Schema} = mongoose;
+const {ObjectId} = Schema.Types;
 
-// follower follows the user
+// Follower follows the user
 const followSchema = new Schema({
-	user: { type: ObjectId, ref: 'user', required: true },
-	follower: { type: ObjectId, ref: 'user', required: true }
+	user: {type: ObjectId, ref: 'user', required: true},
+	follower: {type: ObjectId, ref: 'user', required: true}
 });
 
-// create index for fast search
-followSchema.index({ user: 1, follower: 1});
+// Create index for fast search
+followSchema.index({user: 1, follower: 1});
 
-// create reverse index for follower search capability
-followSchema.index({ follower: 1, user: 1 });
+// Create reverse index for follower search capability
+followSchema.index({follower: 1, user: 1});
 
 const Follow = mongoose.model('follow', followSchema);
 
