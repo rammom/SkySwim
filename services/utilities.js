@@ -9,7 +9,7 @@ exports.authCheck = (req, res, next) => {
 		// if logged in
 		next();
 	}
-}
+};
 
 // Middleware for unauthenticated users
 exports.antiAuthCheck = (req, res, next) => {
@@ -21,4 +21,14 @@ exports.antiAuthCheck = (req, res, next) => {
 		// if not logged in
 		next();
 	}
+};
+
+// SSError
+class SSError extends Error {
+	constructor(name = 'ValidationError', message = 'Bad Request', code = 400) {
+		super(message);
+		this.name = name;
+		this.code = String(code);
+	}
 }
+exports.SSError = SSError;

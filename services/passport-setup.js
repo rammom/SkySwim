@@ -2,7 +2,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20');
 const FacebookStrategy = require('passport-facebook')
 const User = require('../models/user-model');
-const Errors = require('./Errors');
+const {SSError} = require('./utilities');
 
 passport.serializeUser((user, done) => {
 	done(null, user._id);
@@ -12,10 +12,12 @@ passport.deserializeUser((id, done) => {
 	User.findById(id)
 		.select('_id username picture')		// hide oauth ids
 		.then(user => {
-			if (!user) 
-				return done(new Errors.UserError("passport: user not found"));
+			if (!user) {
+				return done(new SSError("passport: user not found"));
+			}
+
 			return done(null, user);
-		})
+		});
 })
 
 passport.use(
@@ -25,13 +27,10 @@ passport.use(
 		clientID: process.env.SS_GOOGLE_CLIENT_ID,
 		clientSecret: process.env.SS_GOOGLE_CLIENT_SECRET
 	}, async (accessToken, refreshToken, profile, done) => {
-		// google authentication success
+		// Google authentication success
 		let error = null;
 
-		// check if user exists
-		let user = null;
-		await User.findOne({ googleId: profile.id })
-			.then(u => user = u)
+		let user = await User.findOne({googleId: profile.id})
 			.catch(e => error = e);
 
 		if (error)

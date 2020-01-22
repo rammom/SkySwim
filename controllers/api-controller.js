@@ -2,7 +2,7 @@ const Post = require('../models/post-model');
 const User = require('../models/user-model');
 const Follow = require('../models/follow-model');
 const Feed = require('../models/feed-model');
-const Errors = require('../services/Errors');
+const {SSError} = require('../services/utilities');
 const s3 = require('../services/s3-setup');
 const safe = require('safe-regex');
 
@@ -28,7 +28,7 @@ exports.askAWSForPresignedPutUrl = async (req, res, next) => {
 
 	// Validate the request
 	if (!contentType || !(contentType.startsWith("image/") || contentType.startsWith("video/"))) {
-    return next(new Errors.ValidationError("invalid request"));
+    return next(new SSError());
   }
 
   // Example: 4172890743.jpeg
@@ -60,7 +60,7 @@ exports.getUsersFromSearchTerm = async (req, res, next) => {
 
 	// Validate the request and check for malicious code
 	if (!text || !safe(text)) {
-		return next(new Errors.ValidationError('invalid request'));
+		return next(new SSError());
   }
 
   // slow
@@ -89,7 +89,7 @@ exports.getUserPostsPaginated = async (req, res, next) => {
 
 	// Validate the request, making 'page' an integer in the process
 	if (!user || !page || isNaN(page) || !(page = parseInt(page)) || page < 1) {
-    return next(new Errors.ValidationError('invalid request'));
+    return next(new SSError());
   }
 
   const pageSize = parseInt(process.env.SS_FEED_CACHE_LIMIT);
@@ -121,7 +121,7 @@ exports.getUserFeedPaginated = async (req, res, next) => {
 
 	// Validate the request, making 'page' an integer in the process
   if (!page || isNaN(page) || !(page = parseInt(page)) || page < 1) {
-	   return next(Errors.ValidationError('invalid request'));
+	   return next(new SSError());
   }
 
 	if (page == 1) {
@@ -229,7 +229,7 @@ exports.createPost = async (req, res, next) => {
 
 	// Validate the request body
 	if (!blurb || !['blurb', 'image', 'video'].includes(type) || (type != 'blurb' && media == null)) {
-      return next(new Errors.ValidationError('invalid request'))
+      return next(new SSError());
   }
 
 	// Create new post
@@ -285,7 +285,7 @@ exports.deletePost = async (req, res, next) => {
 
 	// validate request body
 	if (!postId) {
-		return next(new Errors.ValidationError('invalid request'))
+		return next(new SSError());
   }
 
 	// check post belongs to user
@@ -299,7 +299,7 @@ exports.deletePost = async (req, res, next) => {
   }
 
 	if (!post) {
-		return next(new Errors.ValidationError('invalid request'))
+		return next(new SSError());
   }
 
 	if (post.media) {
@@ -363,7 +363,7 @@ exports.followUser = async (req, res, next) => {
 
 	// validate request
 	if (!user) {
-		return Errors.ValidationError('invalid request');
+		return new SSError();
   }
 
 	// Check if relationship already exists
@@ -378,7 +378,7 @@ exports.followUser = async (req, res, next) => {
 
 	if (follow) {
     // Current user is already following the target user
-    return next(Errors.ValidationError('invalid request'));
+    return next(new SSError());
   }
 
 	// Create a follow relationship
@@ -411,7 +411,7 @@ exports.unfollowUser = async (req, res, next) => {
 
 	// validate request
 	if (!user) {
-		return Errors.ValidationError('invalid request');
+		return new SSError();
   }
 
 	// delete relationship
