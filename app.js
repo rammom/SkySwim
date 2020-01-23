@@ -15,6 +15,7 @@ const passportSetup = require('./services/passport-setup');
 passportSetup.config(passport);
 const {authCheck, antiAuthCheck} = require('./services/utilities');
 const swaggerSpec = require('./swagger.json');
+const logger = require('./services/log-setup');
 const routes = {
 	index: require('./routes/index-routes'),
 	auth: require('./routes/auth-routes'),
@@ -29,14 +30,9 @@ app.use(helmet());
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Connect to mongodb
-mongoose.connect(
-	process.env.SS_MONGO_URI,
-	{
-		useNewUrlParser: true,
-		useUnifiedTopology: true
-	},
-	() => console.log('connected to mongodb')
-);
+mongoose.connect(process.env.SS_MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true}, () => {
+	logger.info(`connected to mongodb at ${process.env.SS_MONGO_URI}`);
+});
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
@@ -81,7 +77,7 @@ app.use('/', antiAuthCheck, routes.index);
 
 // Catch any errors
 app.use((error, req, res, _) => {
-	console.log(error);
+	logger.error(error);
 
 	const {type} = error;
 	const code = error.code ? error.code : 500;
@@ -101,6 +97,4 @@ app.use((error, req, res, _) => {
 	});
 });
 
-app.listen(process.env.SS_PORT, () => {
-	console.log(`${process.env.SS_NAME} now listening on port ${process.env.SS_PORT}`);
-});
+module.exports = app;

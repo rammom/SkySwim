@@ -4,7 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "./node_modules/.bin/xo"
+    "lint": "xo",
+    "test": "export NODE_ENV=development && jest",
+    "dev": "export NODE_ENV=development && nodemon server.js",
+    "prod": "export NODE_ENV=production && node server.js"
   },
   "author": "Mostapha Rammo",
   "license": "ISC",
@@ -26,9 +29,27 @@
     "passport-google-oauth20": "^2.0.0",
     "safe-regex": "^2.1.1",
     "swagger-jsdoc": "^3.5.0",
-    "swagger-ui-express": "^4.1.2"
+    "swagger-ui-express": "^4.1.2",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
+    "jest": "^25.1.0",
+    "supertest": "^4.0.2",
     "xo": "^0.25.3"
+  },
+  "xo": {
+    "envs": [
+      "node",
+      "jest"
+    ],
+    "rules": {
+      "no-warning-comments": "off"
+    }
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }

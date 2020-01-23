@@ -1,6 +1,7 @@
 const safe = require('safe-regex');
 const s3 = require('../services/s3-setup');
 const {SSError} = require('../services/utilities');
+const logger = require('../services/log-setup');
 const Post = require('../models/post-model');
 const User = require('../models/user-model');
 const Follow = require('../models/follow-model');
@@ -145,7 +146,7 @@ exports.getUserFeedPaginated = async (req, res, next) => {
 
 				if (error) {
 					// TODO: Add failed task to job queue
-					console.error(`FAILED TO INVALIDATE FEED! ${error}`);
+					logger.error(`FAILED TO INVALIDATE FEED! ${error}`);
 				}
 
 				feed = null;
@@ -244,7 +245,7 @@ exports.createPost = async (req, res, next) => {
 	await Feed.findOneAndUpdate({user: req.user._id}, {$push: {posts: {$each: [post], $position: 0, $slice: pageSize}}})
 		.catch(error_ => {
 			// TODO: Add failing task to job queue
-			console.error(`FAILED TO ADD NEW POST TO USER FEED: ${error_}`);
+			logger.error(`FAILED TO ADD NEW POST TO USER FEED: ${error_}`);
 		});
 
 	// Fan out to followers with cached feeds, don't await to not block
@@ -255,7 +256,7 @@ exports.createPost = async (req, res, next) => {
 				Feed.findOneAndUpdate({user: relation.follower}, {$push: {posts: {$each: [post], $position: 0, $slice: pageSize}}})
 					.catch(error_ => {
 						// TODO: Add failing task to job queue
-						console.error(`FAILED TO ADD NEW POST TO FOLLOWERS FEED: ${error_}`);
+						logger.error(`FAILED TO ADD NEW POST TO FOLLOWERS FEED: ${error_}`);
 					});
 			});
 		});
@@ -296,7 +297,7 @@ exports.deletePost = async (req, res, next) => {
 		await s3.deleteObject(fileName)
 			.catch(error_ => {
 				// TODO: Add failed task to job queue
-				console.error(`FAILED TO REMOVE OBJECT FROM S3 (${fileName}): ${error_}`);
+				logger.error(`FAILED TO REMOVE OBJECT FROM S3 (${fileName}): ${error_}`);
 			});
 	}
 
@@ -313,7 +314,7 @@ exports.deletePost = async (req, res, next) => {
 	Feed.findOneAndUpdate({user: req.user._id}, {$pull: {posts: postId}})
 		.catch(error_ => {
 			// TODO: Add failing task to job queue
-			console.error(`FAILED TO DELETE POST FROM USER FEED: ${error_}`);
+			logger.error(`FAILED TO DELETE POST FROM USER FEED: ${error_}`);
 		});
 
 	// Fan out to followers with cached feeds, don't await to not block
@@ -324,7 +325,7 @@ exports.deletePost = async (req, res, next) => {
 				Feed.findOneAndUpdate({user: relation.follower}, {$pull: {posts: postId}})
 					.catch(error_ => {
 						// TODO: Add failing task to job queue
-						console.error(`FAILED TO DELETE POST FROM FOLLOWERS FEED: ${error_}`);
+						logger.error(`FAILED TO DELETE POST FROM FOLLOWERS FEED: ${error_}`);
 					});
 			});
 		});
